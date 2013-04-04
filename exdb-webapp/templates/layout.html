@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Exercise Database</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/smoothness/jquery-ui-1.10.2.custom.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='js/jquery-1.9.1.js')}}"></script>
+    <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='js/jquery-ui-1.10.2.custom.js')}}"></script>
+</head>
+
+<body>
+    
+<div class="page">
+  <div class="metanav">
+  {% if not session.logged_in %}
+    <a href="/testin">log in</a>
+  {% else %}
+    <a href="/testout">log out</a>
+  {% endif %}
+  </div>
+  {% block body %}{% endblock %}
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+{% block body %}
+<h1>Hallo</h1>
+
+
+<form>
+<fieldset>
+<label for="description">Description</label>
+<input type="text" name="description" id="description" class="text ui-widget-content ui-corner-all" />
+<label for="tags">Tags</label>
+<input name="tags" id="tags" class="text ui-widget-content ui-corner-all" />
+<label for="preamble">Needed lines in the preamble</label>
+<ul id="preambles">
+    <li><span class="lbutton ui-icon ui-icon-minus ui-corners-all ui-state-default ui-widget-content"></span><input type="text" id="preamble1" class="text ui-widget-content ui-corner-all"/></li>
+</ul>
+<label for="tex_ex_de">LaTeX-Code</label>
+<div id="textabs">
+    <ul>
+        <li><a href="#textab-de">german</a></li>
+        <li><a href="#textab-en">english</a></li>
+    </ul>
+    <div id="textab-de">
+        <div id="tex_ex_de">% hier LaTeX-Code eingeben
+        bla
+        bla
+        bla
+        </div>        
+    </div>
+    <div id="textab-en">
+        <p> geht noch nicht</p>
+    </div>
+</div>
+
+</fieldset>
+</form>
+
+<img id="texpreview" />
+<div class="divframe" id="errorlogdiv">
+Compile-Fehler:
+<div class="divinner" id="errorlog">
+</div>
+</div>
+<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("tex_ex_de");
+    editor.setTheme("ace/theme/chrome");
+    editor.getSession().setMode("ace/mode/latex");
+    editor.commands.addCommand({
+	name: 'compile',
+	bindKey: {win: 'Ctrl-Return',  mac: 'Command-T'},
+    exec: function(editor) {
+        $( '#compilebutton' ).trigger( 'click' );
+    }
+});
+</script>
+<form action="hello.html">
+    <input type="submit" value="Absenden" id="compilebutton" />
+</form>
+<script>
+    var comp = function() {
+        $("#texpreview").hide();
+        $("#errorlogdiv").hide();
+        $( '#compilebutton' ).click( function(event) {
+            event.preventDefault();
+            console.log('test');
+            console.log(editor.getValue());
+            $.ajax({
+            type : 'POST',
+            url  : '/rpclatex',
+            data : {tex : editor.getValue()},
+            dataType : 'json',
+            success : function (resp) {
+                if (resp['status'] == 'ok') {
+                $( '#texpreview' ).attr('src', resp['imgsrc'] + "?timestamp=" + new Date().getTime());
+                $( '#texpreview' ).show();
+                $( '#errorlogdiv' ).hide();
+                } else {
+                $( '#texpreview' ).hide();
+                $( '#errorlog' ).children().remove();
+                $( '#errorlog' ).append($('<pre></pre>').text(resp["log"]));
+                $( '#errorlogdiv' ).show();
+                }
+            },
+            error : function (req, status, err ) {
+                console.log( 'something went wrong', status, err );
+                $( '#texpreview' ).hide();
+            }
+            });
+        });
+        $('#tags').autocomplete();
+        $('#textabs').tabs();
+    }
+    $( comp );
+</script>
+{% endblock %}
