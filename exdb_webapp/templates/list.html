@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}
+<ul class="exercises">
+    {% for exercise in exercises %}
+        <li>{{ exercise.identifier() }}: {{ exercise.description }}</li>
+    {% else %}
+        <li>No exercises available so far</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -20,6 +20,11 @@
         <li><a href="#textab-en">english</a></li>
     </ul>
     <div id="textab-de">
+        <img id="texpreview" width="600px"/>
+        <div class="divframe" id="errorlogdiv">
+            Compile-Fehler:
+            <div id="errorlog"></div>
+        </div>
         <div id="tex_ex_de">% hier LaTeX-Code eingeben
         bla
         bla
@@ -34,12 +39,6 @@
 </fieldset>
 </form>
 
-<img id="texpreview" />
-<div class="divframe" id="errorlogdiv">
-Compile-Fehler:
-<div class="divinner" id="errorlog">
-</div>
-</div>
 <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("tex_ex_de");
@@ -66,7 +65,7 @@ Compile-Fehler:
             console.log(editor.getValue());
             $.ajax({
             type : 'POST',
-            url  : '/rpclatex',
+            url  : '{{ url_for("rpclatex") }}',
             data : {tex : editor.getValue()},
             dataType : 'json',
             success : function (resp) {

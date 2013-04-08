@@ -1,12 +1,15 @@
 body {
     font-family: "Helvetica";
-    font-size: 100%;
+    font-size: 12pt;
 }
 .page {
-    width:600px;
+    width: 700px;
     margin: 0 auto;
     padding: 0.5em;
     border: 2px solid gray;
+}
+.toolbar {
+    text-align: right;
 }
 #tex_ex_de {
     position: relative;
@@ -15,7 +18,6 @@ body {
 }
 #errorlog {
 	max-height:200px;
-	display:block;
 	overflow:auto;
 }
 #preambles { list-style-type: none; margin: 0; padding: 0; }

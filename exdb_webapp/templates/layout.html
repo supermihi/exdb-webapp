@@ -9,21 +9,27 @@
     
     <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='js/jquery-1.9.1.js')}}"></script>
     <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='js/jquery-ui-1.10.2.custom.js')}}"></script>
+    
+    <script>
+        $(function() {
+            $("#logout").button();
+        });
+    </script>
 </head>
 
 <body>
     
 <div class="page">
-  <div class="metanav">
-  {% if not session.logged_in %}
-    <a href="/testin">log in</a>
-  {% else %}
-    <a href="/testout">log out</a>
+  {% if session.get("user") %}
+    <div class="toolbar">
+        <a href="{{ url_for('list') }}">list</a>
+        <a href="{{ url_for('add') }}">add</a>
+        <a href="{{ url_for('logout') }}">logout</a>
+    </div>
   {% endif %}
-  </div>
   {% block body %}{% endblock %}
 </div>
-
+  
 </body>
 
 </html>
