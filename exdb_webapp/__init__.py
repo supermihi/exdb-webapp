@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, request, url_for
-from flask import render_template
+from flask import Flask, jsonify, g, render_template, request, url_for
 import subprocess, os
+import exdb
 
 app = Flask(__name__)
 
@@ -28,7 +28,3 @@ def rpclatex():
     except subprocess.CalledProcessError as e:
         output = e.output
     return jsonify(status="error", log=output)
-
-if __name__ == "__main__":
-    app.debug = True
-    app.run(host="0.0.0.0",port=6000)
