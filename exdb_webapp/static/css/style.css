@@ -11,14 +11,18 @@ body {
 .toolbar {
     text-align: right;
 }
-#tex_ex_de {
+.latexeditor {
     position: relative;
-	height: 275px;
+	height: 150px;
+    width: 95%;
 	font-family:Monospace;
 }
-#errorlog {
+.errorlog {
 	max-height:200px;
 	overflow:auto;
+}
+.textabs {
+    min-height: 230px;
 }
 #preambles { list-style-type: none; margin: 0; padding: 0; }
 #preambles li { margin: 0 0 3px 3px; padding: 0; padding-left: 1.5em; font-size: 1.4em }

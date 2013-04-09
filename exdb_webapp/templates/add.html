@@ -1,7 +1,11 @@
 {% extends "layout.html" %}
-{% block body %}
-<h1>Hallo</h1>
 
+{% block head %}
+<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
+
+{% block body %}
+<h1>New Exercise</h1>
 
 <form>
 <fieldset>
@@ -11,54 +15,56 @@
 <input name="tags" id="tags" class="text ui-widget-content ui-corner-all" />
 <label for="preamble">Needed lines in the preamble</label>
 <ul id="preambles">
-    <li><span class="lbutton ui-icon ui-icon-minus ui-corners-all ui-state-default ui-widget-content"></span><input type="text" id="preamble1" class="text ui-widget-content ui-corner-all"/></li>
+    <li><span class="lbutton ui-icon ui-icon-minus ui-corners-all ui-state-default ui-widget-content"></span><input type="text" id="preamble1" class="text ui-widget-content ui-corner-all"/>
+    </li>
+    <button id="addpreamble">add</button>
 </ul>
-<label for="tex_ex_de">LaTeX-Code</label>
-<div id="textabs">
-    <ul>
-        <li><a href="#textab-de">german</a></li>
-        <li><a href="#textab-en">english</a></li>
-    </ul>
-    <div id="textab-de">
-        <img id="texpreview" width="600px"/>
-        <div class="divframe" id="errorlogdiv">
-            Compile-Fehler:
-            <div id="errorlog"></div>
-        </div>
-        <div id="tex_ex_de">% hier LaTeX-Code eingeben
-        bla
-        bla
-        bla
-        </div>        
-    </div>
-    <div id="textab-en">
-        <p> geht noch nicht</p>
-    </div>
-</div>
 
+{% for typ in ("exercise", "solution") %}
+    <label>{{typ}}</label>
+    <div class="textabs">
+        <ul>
+            {% for lang in "DE", "EN" %}
+              <li><a href="#textab_{{typ}}_{{lang}}">{{lang}}</a></li>
+            {% endfor %}
+        </ul>
+        {% for lang in "DE", "EN" %}
+            <div id="textab_{{typ}}_{{lang}}" class="textab">
+                <img id="texpreview_{{typ}}_{{lang}}" class="texpreview" width="600px" />
+                <div class="errorlog" id="errorlog_{{typ}}_{{lang}}"></div>
+                <div id="texedit_{{typ}}_{{lang}}" class="latexeditor ui-widget-content">% enter LaTeX code here </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
 </fieldset>
 </form>
 
-<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    var editor = ace.edit("tex_ex_de");
-    editor.setTheme("ace/theme/chrome");
-    editor.getSession().setMode("ace/mode/latex");
-    editor.commands.addCommand({
-	name: 'compile',
-	bindKey: {win: 'Ctrl-Return',  mac: 'Command-T'},
-    exec: function(editor) {
-        $( '#compilebutton' ).trigger( 'click' );
-    }
-});
+    $(function() {
+        $( '.latexeditor' ).each(function(index, elem) {
+            console.log($(elem).attr("id"));
+            var editor = ace.edit($(elem).attr("id"));
+            editor.setTheme("ace/theme/chrome");
+            editor.getSession().setMode("ace/mode/latex");
+            editor.commands.addCommand({
+                name: 'compile',
+                bindKey: {win: 'Ctrl-Return', mac: 'Command-Return'},
+                exec: function(editor) {
+                    $( '#compilebutton' ).trigger( 'click' );
+                }
+            });
+        });
+    });
 </script>
-<form action="hello.html">
+
+<form action="add.html">
     <input type="submit" value="Absenden" id="compilebutton" />
 </form>
 <script>
     var comp = function() {
-        $("#texpreview").hide();
-        $("#errorlogdiv").hide();
+        $(".texpreview").hide();
+        $(".errorlog").hide();
         $( '#compilebutton' ).click( function(event) {
             event.preventDefault();
             console.log('test');
@@ -87,7 +93,11 @@
             });
         });
         $('#tags').autocomplete();
-        $('#textabs').tabs();
+        
+        $('.textabs').each(function(index, elem) {
+            $(elem).tabs({collapsible: true});
+        });
+        
     }
     $( comp );
 </script>
