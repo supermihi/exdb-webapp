@@ -2,9 +2,38 @@
 {% block body %}
 <ul class="exercises">
     {% for exercise in exercises %}
-        <li>{{ exercise.identifier() }}: {{ exercise.description }}</li>
+        <li>
+            <table>
+                <tr><td>Description:</td><td>{{exercise.description}}</td></tr>
+                <tr><td>Tags:</td><td>{{", ".join(exercise.tags)}}</td></tr>
+                <tr><td>Exercise:</td><td>
+                    {% for lang in exercise.tex_exercise %}
+                        <img class="exerciseflag" width="26px" src="{{imagePath('{}.png'.format(lang))}}" imgurl="{{url_for('static', filename='exercises/{}/exercise_{}.png'.format(exercise.identifier(), lang), timestamp=exercise.modified)}}" />
+                    {% endfor %}
+                </td></tr>
+                {% if exercise.tex_solution %}
+                    <tr><td>Solution:</td><td>
+                        {% for lang in exercise.tex_solution %}
+                            <img class="exerciseflag" width="26px" src="{{imagePath('{}.png'.format(lang))}}" imgurl="{{url_for('static', filename='exercises/{}/solution_{}.png'.format(exercise.identifier(), lang), timestamp=exercise.modified)}}" />
+                    {% endfor %}
+                    </td></tr>
+                {% endif %}
+            </table>
+            <a>details</a> <a href="{{url_for('edit', creator=exercise.creator, number=exercise.number)}}">edit</a> <a>remove</a><span class="creator">entered by {{exercise.creator}} modified {{exercise.modified}}</span>
+        </li>
     {% else %}
         <li>No exercises available so far</li>
     {% endfor %}
 </ul>
+<script>
+    $( function() {
+        $(document).tooltip({
+            items: ".exerciseflag",
+            content: function() {
+                var element = $(this);
+                return "<img src=" + element.attr("imgurl") + '"/>';
+            }
+        });
+    });                
+</script>
 {% endblock %}

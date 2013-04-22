@@ -1,11 +1,19 @@
 from flask import Flask, jsonify, g, render_template, redirect, request, session, url_for
+from werkzeug import secure_filename
 import subprocess, os, shutil
+import uuid
+import json
 
 import exdb.tex, exdb.sql
 
 app = Flask(__name__)
 
 from functools import wraps
+
+def imagePath(filename):
+    return url_for("static", filename="images/{}".format(filename))
+
+app.jinja_env.globals.update(imagePath=imagePath)
 
 def login_required(f):
     @wraps(f)
@@ -36,6 +44,7 @@ def login():
             error = "Invalid password"
         else:
             session['user'] = user
+            session['uid'] = uuid.uuid4()
             return redirect(url_for("list"))
     return render_template('login.html', error=error)
 
@@ -44,22 +53,55 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
-@app.route('/add')
+@app.route('/add', methods=["POST", "GET"])
 @login_required
-def add(id=None):
-    return render_template('add.html')
+def add():
+    if request.method == "POST":
+        data = json.loads(request.form["data"])
+        exercise = exdb.exercise.Exercise(creator=session['user'])
+        for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
+            setattr(exercise, key, data[key])
+        exdb.addExercise(exercise, True, connection=g.db)
+        return jsonify(status="ok")
+    return render_template('add.html', tags=exdb.sql.tags(g.db))
+
+@app.route('/edit/<creator>/<int:number>', methods=["POST", "GET"])
+def edit(creator, number):
+    exercise = exdb.sql.exercise(creator, number)
+    if request.method == "POST":
+        data = json.loads(request.form["data"])
+        for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
+            setattr(exercise, key, data[key])
+        print(exercise)
+        exdb.updateExercise(exercise, connection=g.db)
+        return jsonify(status="ok")
+    return render_template('add.html', tags=exdb.sql.tags(g.db), exercise=exercise)
 
 @app.route('/rpclatex', methods=["POST", "GET"])
 @login_required
 def rpclatex():
-    tex = request.form['tex'].encode('utf-8')
-    imgfile = exdb.tex.makePreview(tex)
-    staticPath = os.path.join(app.root_path, "static", "preview.png")
-    shutil.copyfile(imgfile, staticPath)
-    return jsonify(status="ok", imgsrc=url_for("static", filename="preview.png"))
-    
-    return jsonify(status="error", log=output)
+    print(request.form)
+    tex = request.form['tex']
+    lang = request.form['lang']
+    type = request.form['type']
+    preambles = json.loads(request.form['preambles'])
+    try:
+        imgfile = exdb.tex.makePreview(tex, preambles=preambles, lang=lang)
+        filename = secure_filename("{}_{}_{}.png".format(session['uid'], lang, type))
+        staticPath = os.path.join(app.root_path, "static", filename)
+        shutil.copyfile(imgfile, staticPath)
+        return jsonify(status="ok", imgsrc=url_for("static", filename=filename))
+    except exdb.tex.CompilationError as e:
+        return jsonify(status="error", log=e.log)
+    except exdb.tex.ConversionError as e:
+        return jsonify(status="error", log=str(e))
 
+@app.route('/tags')
+@login_required
+def tags():
+    return jsonify(tags=exdb.sql.tags(g.db))
+    
+    
 @app.before_request
 def before_request():
     g.db = exdb.sql.connect()

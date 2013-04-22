@@ -1,27 +1,59 @@
 {% extends "layout.html" %}
 
 {% block head %}
-<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{url_for('static', filename='js/codemirror.js')}}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/codemirror.css')}}"></link>
+<script src="{{url_for('static', filename='js/codemirror-stex.js')}}"></script>
+<script>
+    rpclatexUrl='{{url_for("rpclatex")}}';
+    listUrl='{{url_for("list")}}';
+    mode={% if exercise %}"edit"{% else %}"add"{% endif %};
+    $.get("{{url_for("tags")}}", function(data) {
+        availableTags = data["tags"];
+    });
+</script>
+<script src="{{url_for('static', filename='js/add.js')}}"></script>
+
+{% if exercise %}
+    <script>
+        $( function() {
+            $("#description").val("{{exercise.description}}");
+            $("#tags").val("{{",".join(exercise.tags)}}");
+            {% for line in exercise.tex_preamble %}
+                addPreambleLine("{{line.replace('\\', '\\\\')}}");
+            {% endfor %}
+            {% for (typ, texdict) in ("exercise", exercise.tex_exercise), ("solution", exercise.tex_solution) %}
+                {% for lang in texdict %}
+                    editors["{{typ+lang}}"].setValue("{{texdict[lang]}}");
+                {% endfor %}
+            {% endfor %}
+        });
+    </script>
+{% endif %}
+
 {% endblock %}
 
 {% block body %}
-<h1>New Exercise</h1>
+<h1>{% if exercise %}
+        Modify exercise {{exercise.identifier()}}
+    {% else %}
+        New Exercise
+    {% endif %}
+</h1>
 
 <form>
 <fieldset>
 <label for="description">Description</label>
-<input type="text" name="description" id="description" class="text ui-widget-content ui-corner-all" />
+<input type="text" name="description" id="description" class="text ui-widget-content ui-corner-all"></input>
 <label for="tags">Tags</label>
 <input name="tags" id="tags" class="text ui-widget-content ui-corner-all" />
-<label for="preamble">Needed lines in the preamble</label>
+<label for="preamble">Preamble</label>
 <ul id="preambles">
-    <li><span class="lbutton ui-icon ui-icon-minus ui-corners-all ui-state-default ui-widget-content"></span><input type="text" id="preamble1" class="text ui-widget-content ui-corner-all"/>
-    </li>
-    <button id="addpreamble">add</button>
 </ul>
+<button id="addpreamble">add line</button>
 
 {% for typ in ("exercise", "solution") %}
-    <label>{{typ}}</label>
+    <h2>{{typ}} tex code</h2>
     <div class="textabs">
         <ul>
             {% for lang in "DE", "EN" %}
@@ -29,76 +61,16 @@
             {% endfor %}
         </ul>
         {% for lang in "DE", "EN" %}
-            <div id="textab_{{typ}}_{{lang}}" class="textab">
-                <img id="texpreview_{{typ}}_{{lang}}" class="texpreview" width="600px" />
-                <div class="errorlog" id="errorlog_{{typ}}_{{lang}}"></div>
-                <div id="texedit_{{typ}}_{{lang}}" class="latexeditor ui-widget-content">% enter LaTeX code here </div>
+            <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
+                <img class="texpreview"/>
+                <div class="errorlog"><label class="errormsg">Error compiling source</label><pre></pre></div>
+                <textarea class="latexeditor ui-widget-content"></textarea>
+                <button class="compilebutton">compile</button>
             </div>
         {% endfor %}
     </div>
 {% endfor %}
 </fieldset>
 </form>
-
-<script>
-    $(function() {
-        $( '.latexeditor' ).each(function(index, elem) {
-            console.log($(elem).attr("id"));
-            var editor = ace.edit($(elem).attr("id"));
-            editor.setTheme("ace/theme/chrome");
-            editor.getSession().setMode("ace/mode/latex");
-            editor.commands.addCommand({
-                name: 'compile',
-                bindKey: {win: 'Ctrl-Return', mac: 'Command-Return'},
-                exec: function(editor) {
-                    $( '#compilebutton' ).trigger( 'click' );
-                }
-            });
-        });
-    });
-</script>
-
-<form action="add.html">
-    <input type="submit" value="Absenden" id="compilebutton" />
-</form>
-<script>
-    var comp = function() {
-        $(".texpreview").hide();
-        $(".errorlog").hide();
-        $( '#compilebutton' ).click( function(event) {
-            event.preventDefault();
-            console.log('test');
-            console.log(editor.getValue());
-            $.ajax({
-            type : 'POST',
-            url  : '{{ url_for("rpclatex") }}',
-            data : {tex : editor.getValue()},
-            dataType : 'json',
-            success : function (resp) {
-                if (resp['status'] == 'ok') {
-                $( '#texpreview' ).attr('src', resp['imgsrc'] + "?timestamp=" + new Date().getTime());
-                $( '#texpreview' ).show();
-                $( '#errorlogdiv' ).hide();
-                } else {
-                $( '#texpreview' ).hide();
-                $( '#errorlog' ).children().remove();
-                $( '#errorlog' ).append($('<pre></pre>').text(resp["log"]));
-                $( '#errorlogdiv' ).show();
-                }
-            },
-            error : function (req, status, err ) {
-                console.log( 'something went wrong', status, err );
-                $( '#texpreview' ).hide();
-            }
-            });
-        });
-        $('#tags').autocomplete();
-        
-        $('.textabs').each(function(index, elem) {
-            $(elem).tabs({collapsible: true});
-        });
-        
-    }
-    $( comp );
-</script>
+<button id="submitbutton">submit</button>
 {% endblock %}

@@ -1,6 +1,6 @@
 body {
     font-family: "Helvetica";
-    font-size: 12pt;
+    font-size: 10pt;
 }
 .page {
     width: 700px;
@@ -11,22 +11,27 @@ body {
 .toolbar {
     text-align: right;
 }
-.latexeditor {
-    position: relative;
-	height: 150px;
-    width: 95%;
-	font-family:Monospace;
-}
+
 .errorlog {
 	max-height:200px;
-	overflow:auto;
+    max-width: 630px;
+    overflow:auto;
 }
 .textabs {
     min-height: 230px;
 }
+
+.texpreview {
+    display:block;
+    max-width: 630px;
+}
+.errormsg {
+    color:red;
+    font-style:bold;
+}
 #preambles { list-style-type: none; margin: 0; padding: 0; }
-#preambles li { margin: 0 0 3px 3px; padding: 0; padding-left: 1.5em; font-size: 1.4em }
-#preambles li span { position: absolute; margin-left: -1.3em; }
-label, input { display:block; }
+#preambles li input {width: 90%; padding: .4em; padding: .4em; margin: 2px}
 input.text { margin-bottom:12px; width:95%; padding: .4em; }
-span.lbutton {margin: .2em; }
+.exercises {list-style-type: none}
+.exercises li { border: 1px solid gray; padding: 2px; margin-bottom: 6px;}
+.creator { float: right }
