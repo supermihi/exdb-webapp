@@ -177,7 +177,6 @@ var submit = function() {
     data["tex_preamble"] = preambles();
     data["description"] = $("#description").val();
     data["tags"] = tags();
-    console.log("tags = " + tags());
     $.ajax({
         type : 'POST',
         url : window.location.pathname,
