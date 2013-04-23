@@ -39,7 +39,6 @@ def login():
             for line in userFile:
                 user, hash = line.strip().split("|", 1)
                 users[user] = hash
-        print(users)
         user = request.form["username"]
         if user not in users:
             error = "Invalid username"
@@ -66,7 +65,6 @@ def add():
             setattr(exercise, key, data[key])
         exdb.addExercise(exercise, True, connection=g.db)
         return jsonify(status="ok")
-    print(json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"))
     return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"))
 
 @app.route('/edit/<creator>/<int:number>', methods=["POST", "GET"])
@@ -77,7 +75,6 @@ def edit(creator, number):
         data = json.loads(request.form["data"])
         for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
             setattr(exercise, key, data[key])
-        print(exercise)
         exdb.updateExercise(exercise, connection=g.db, user=session['user'])
         return jsonify(status="ok")
     return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"), exercise=exercise)
@@ -122,7 +119,6 @@ def search():
     for exercise in exercises:
         exercise.modified = exercise.modified.strftime(exercise.DATEFMT)
     jsonExercises = json.dumps(exercises)
-    print(jsonExercises)
     return jsonify(status="ok", exercises=jsonExercises)
 
 @app.before_request

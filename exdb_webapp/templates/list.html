@@ -24,9 +24,7 @@
         });
         $(document).on("click", ".removelink", function(event) {
             event.preventDefault();
-            console.log("click");
             table = $(this).closest(".exercise_listentry");
-            console.log($(this));
             creator = table.attr("creator");
             number = table.attr("number");
             $("#remove_dialog_message").text("Are you sure to remove exercise '" + creator + number + "'?");
@@ -44,7 +42,6 @@
                     number = $(this).data("number");
                     $.post(removeUrl, { creator: creator, number: number },
                        function(resp) {
-                           console.log('.exercise_listentry[creator="' + creator + '",number="' + number + '"]');
                            $('.exercise_listentry[creator="' + creator + '"][number="' + number + '"]').remove(); }
                     );
                     $(this).dialog( "close");
@@ -79,8 +76,6 @@
     function addExercise(data) {
         var li = $('<li class="exercise_listentry"></li>').attr("creator", data.creator).attr("number", data.number);
         var table = $('<table></table>');
-        console.log(data["creator"]);
-        console.log(data.tags);
         function addRow(left, right) {
             table.append("<tr><td>" + left + "</td><td>"+right+"</td></tr>");
         }

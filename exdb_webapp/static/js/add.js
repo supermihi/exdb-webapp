@@ -129,7 +129,12 @@ var compileSnippet = function(button) {
     var editor = editors[textype+lang];
     if ($.trim(editor.getValue()) == "")
         return 0;
-    return $.ajax({
+    var progress = $('<div class="progressbar"></div>');
+    var proglabel = $('<div class="progress-label">compiling, please be patient...</div>');
+    progress.append(proglabel);
+    progress.progressbar({value: false  });
+    button.parent().prepend(progress);
+    req = $.ajax({
         type : 'POST',
         url  : rpclatexUrl,
         data : {tex : editor.getValue(),
@@ -155,6 +160,10 @@ var compileSnippet = function(button) {
             texpreview.hide();
         }
     });
+    req.always(function() {
+        progress.remove();
+    });
+    return req;
 };
 var submit = function() {
     var data = {};
