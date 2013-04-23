@@ -5,12 +5,8 @@
 <link rel="stylesheet" href="{{url_for('static', filename='css/codemirror.css')}}"></link>
 <script src="{{url_for('static', filename='js/codemirror-stex.js')}}"></script>
 <script>
-    rpclatexUrl='{{url_for("rpclatex")}}';
-    listUrl='{{url_for("list")}}';
     mode={% if exercise %}"edit"{% else %}"add"{% endif %};
-    $.get("{{url_for("tags")}}", function(data) {
-        availableTags = data["tags"];
-    });
+    availableTags = $.parseJSON('{{tags|safe}}');
 </script>
 <script src="{{url_for('static', filename='js/add.js')}}"></script>
 
@@ -22,11 +18,12 @@
             {% for line in exercise.tex_preamble %}
                 addPreambleLine("{{line.replace('\\', '\\\\')}}");
             {% endfor %}
-            {% for (typ, texdict) in ("exercise", exercise.tex_exercise), ("solution", exercise.tex_solution) %}
-                {% for lang in texdict %}
-                    editors["{{typ+lang}}"].setValue("{{texdict[lang]}}");
-                {% endfor %}
-            {% endfor %}
+            {% if "DE" not in exercise.tex_solution %}
+                $('.textabs[textype="exercise"]').tabs("option", "active", 1);
+            {% endif %}
+            {% if ("DE" not in exercise.tex_solution) and ("EN" in exercise.tex_solution) %}
+                $('.textabs[textype="solution"]').tabs("option", "active", 1);
+            {% endif %}
         });
     </script>
 {% endif %}
@@ -54,17 +51,17 @@
 
 {% for typ in ("exercise", "solution") %}
     <h2>{{typ}} tex code</h2>
-    <div class="textabs">
+    <div class="textabs" textype="{{typ}}">
         <ul>
             {% for lang in "DE", "EN" %}
-              <li><a href="#textab_{{typ}}_{{lang}}">{{lang}}</a></li>
+              <li><a href="#textab_{{typ}}_{{lang}}"><img width="26px" src="{{imagePath('{}.png'.format(lang))}}"/></a></li>
             {% endfor %}
         </ul>
         {% for lang in "DE", "EN" %}
             <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
                 <img class="texpreview"/>
                 <div class="errorlog"><label class="errormsg">Error compiling source</label><pre></pre></div>
-                <textarea class="latexeditor ui-widget-content"></textarea>
+                <textarea class="latexeditor ui-widget-content">{% if exercise %}{{exercise["tex_{}".format(typ)][lang]}}{% endif %}</textarea>
                 <button class="compilebutton">compile</button>
             </div>
         {% endfor %}

@@ -26,8 +26,8 @@ def login_required(f):
 @app.route("/")
 @login_required
 def list():
-    exercises = exdb.sql.exercises(g.db)
-    return render_template('list.html', exercises=exercises)
+    exercises = exdb.sql.exercises(connection=g.db)
+    return render_template('list.html', exercises=exercises, tags=exdb.sql.tags(g.db))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -35,8 +35,11 @@ def login():
     if request.method == "POST":
         users = {}
         import hashlib
-        for row in g.db.execute("SELECT * FROM users"):
-            users[row["user"]] = row["password"]
+        with open(os.path.join(exdb.instancePath, 'users.txt'), "rt") as userFile:
+            for line in userFile:
+                user, hash = line.strip().split("|", 1)
+                users[user] = hash
+        print(users)
         user = request.form["username"]
         if user not in users:
             error = "Invalid username"
@@ -63,9 +66,11 @@ def add():
             setattr(exercise, key, data[key])
         exdb.addExercise(exercise, True, connection=g.db)
         return jsonify(status="ok")
-    return render_template('add.html', tags=exdb.sql.tags(g.db))
+    print(json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"))
+    return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"))
 
 @app.route('/edit/<creator>/<int:number>', methods=["POST", "GET"])
+@login_required
 def edit(creator, number):
     exercise = exdb.sql.exercise(creator, number)
     if request.method == "POST":
@@ -73,14 +78,27 @@ def edit(creator, number):
         for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
             setattr(exercise, key, data[key])
         print(exercise)
-        exdb.updateExercise(exercise, connection=g.db)
+        exdb.updateExercise(exercise, connection=g.db, user=session['user'])
         return jsonify(status="ok")
-    return render_template('add.html', tags=exdb.sql.tags(g.db), exercise=exercise)
+    return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"), exercise=exercise)
 
-@app.route('/rpclatex', methods=["POST", "GET"])
+@app.route('/remove', methods=["POST"])
+@login_required
+def remove():
+    creator = request.form['creator']
+    number = int(request.form['number'])
+    exdb.removeExercise(creator, number, user=session['user'])
+    return jsonify(status="ok")
+
+@app.route('/details/<creator>/<int:number>')
+@login_required
+def details(creator, number):
+    exercise = exdb.sql.exercise(creator, number, connection=g.db)
+    return render_template("details.html", exercise=exercise)
+    
+@app.route('/rpclatex', methods=["POST"])
 @login_required
 def rpclatex():
-    print(request.form)
     tex = request.form['tex']
     lang = request.form['lang']
     type = request.form['type']
@@ -96,12 +114,17 @@ def rpclatex():
     except exdb.tex.ConversionError as e:
         return jsonify(status="error", log=str(e))
 
-@app.route('/tags')
+@app.route('/search', methods=["POST"])
 @login_required
-def tags():
-    return jsonify(tags=exdb.sql.tags(g.db))
-    
-    
+def search():
+    tags = json.loads(request.form['tags'])
+    exercises = exdb.sql.searchExercises(tags=tags, connection=g.db)
+    for exercise in exercises:
+        exercise.modified = exercise.modified.strftime(exercise.DATEFMT)
+    jsonExercises = json.dumps(exercises)
+    print(jsonExercises)
+    return jsonify(status="ok", exercises=jsonExercises)
+
 @app.before_request
 def before_request():
     g.db = exdb.sql.connect()

@@ -1,39 +1,107 @@
 {% extends "layout.html" %}
 {% block body %}
-<ul class="exercises">
-    {% for exercise in exercises %}
-        <li>
-            <table>
-                <tr><td>Description:</td><td>{{exercise.description}}</td></tr>
-                <tr><td>Tags:</td><td>{{", ".join(exercise.tags)}}</td></tr>
-                <tr><td>Exercise:</td><td>
-                    {% for lang in exercise.tex_exercise %}
-                        <img class="exerciseflag" width="26px" src="{{imagePath('{}.png'.format(lang))}}" imgurl="{{url_for('static', filename='exercises/{}/exercise_{}.png'.format(exercise.identifier(), lang), timestamp=exercise.modified)}}" />
-                    {% endfor %}
-                </td></tr>
-                {% if exercise.tex_solution %}
-                    <tr><td>Solution:</td><td>
-                        {% for lang in exercise.tex_solution %}
-                            <img class="exerciseflag" width="26px" src="{{imagePath('{}.png'.format(lang))}}" imgurl="{{url_for('static', filename='exercises/{}/solution_{}.png'.format(exercise.identifier(), lang), timestamp=exercise.modified)}}" />
-                    {% endfor %}
-                    </td></tr>
-                {% endif %}
-            </table>
-            <a>details</a> <a href="{{url_for('edit', creator=exercise.creator, number=exercise.number)}}">edit</a> <a>remove</a><span class="creator">entered by {{exercise.creator}} modified {{exercise.modified}}</span>
-        </li>
-    {% else %}
-        <li>No exercises available so far</li>
+
+<div id="tagfilter">
+    <p>Filter:</p>
+    {% for tag in tags %}
+        <input type="checkbox" id="tagbutton{{tag}}" tag="{{tag}}" class="filterbutton"/><label class="filtertext" for="tagbutton{{tag}}">{{tag}}</label>
     {% endfor %}
+</div>
+<ul class="exerciselist">
 </ul>
+<div id="confirm_remove" title="Really delete exercise?">
+<p id="remove_dialog_message"><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span></p>
+</div>
+
 <script>
     $( function() {
         $(document).tooltip({
             items: ".exerciseflag",
             content: function() {
                 var element = $(this);
-                return "<img src=" + element.attr("imgurl") + '"/>';
+                return '<img class="tooltipimage" src="' + element.attr("imgurl") + '"/>';
             }
         });
-    });                
+        $(".removelink").click( function(event) {
+            event.preventDefault();
+            table = $(this).closest(".exercise_listentry");
+            console.log($(this));
+            creator = table.attr("creator");
+            number = table.attr("number");
+            $("#remove_dialog_message").text("Are you sure to remove exercise '" + creator + number + "'?");
+            $("#confirm_remove").data("creator", creator);
+            $("#confirm_remove").data("number", number);
+            $("#confirm_remove").dialog("open");
+        });
+        $("#confirm_remove").dialog({
+            autoOpen:false,
+            resizable:false,
+            modal:true,
+            buttons:{
+                Ok: function() {
+                    creator = $(this).data("creator");
+                    number = $(this).data("number");
+                    $.post(removeUrl, { creator: creator, number: number },
+                       function(resp) {
+                           console.log('.exercise_listentry[creator="' + creator + '",number="' + number + '"]');
+                           $('.exercise_listentry[creator="' + creator + '"][number="' + number + '"]').remove(); }
+                    );
+                    $(this).dialog( "close");
+                },
+                Cancel: function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+        $(".filterbutton").button().click(function(event) {
+            selected = []
+            $(".filterbutton").each( function(index, elem) {
+                if ($(elem).is(":checked"))
+                    selected.push($(elem).attr("tag"));
+            });
+            searchExercises(selected);
+            
+        });
+        searchExercises([]);
+            
+    });
+    function searchExercises(tags) {
+        $.post('{{url_for("search")}}', { tags: JSON.stringify(tags) }, function(resp) {
+            ans = $.parseJSON(resp['exercises']);
+            $(".exerciselist").empty();
+            for (var i in ans) {
+                exercise = ans[i];
+                addExercise(exercise);
+            }
+        });
+    };
+    function addExercise(data) {
+        var li = $('<li class="exercise_listentry"></li>').attr("creator", data.creator).attr("number", data.number);
+        var table = $('<table></table>');
+        console.log(data["creator"]);
+        console.log(data.tags);
+        function addRow(left, right) {
+            table.append("<tr><td>" + left + "</td><td>"+right+"</td></tr>");
+        }
+        addRow("Description:", data.description);
+        addRow("Tags:", data.tags.join(", "));
+        exFlags = "";
+        for (var lang in data.tex_exercise)
+            exFlags += '<img class="exerciseflag" width="26px" src="/static/images/'+lang+'.png" imgurl="/static/exercises/'+data.creator+data.number + '/exercise_'+lang+'.png" />';
+        addRow("Exercise:", exFlags);
+        solFlags = "";
+        for (var lang in data.tex_solution)
+            solFlags += '<img class="exerciseflag" width="26px" src="/static/images/'+lang+'.png" imgurl="/static/exercises/'+data.creator+data.number + '/solution_'+lang+'.png" />';
+        if (solFlags != "")
+            addRow("Solution:", solFlags);
+        li.append(table);
+        var toolbar = $('<div class="exercise_toolbar"></div>');
+        toolbar.append($("<a>details</a>").attr("href", "/details/"+data.creator+"/"+data.number));
+        toolbar.append($("<a>edit</a> ").attr("href", "/edit/"+data.creator+"/"+data.number));
+        toolbar.append($('<a class="removelink" href="#">remove</a>'));
+        toolbar.append($('<span class="creator">entered by ' + data.creator + " modified " + data.modified + "</span>"));
+        li.append(toolbar);
+        $(".exerciselist").append(li);
+    };           
 </script>
 {% endblock %}

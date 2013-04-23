@@ -9,6 +9,7 @@
   margin-bottom: 3px;
   border: 1px solid gray;
 }
+
 .CodeMirror-scroll {
   /* Set scrolling behaviour here */
   overflow: auto;

@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<script src="{{url_for('static', filename='js/codemirror.js')}}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/codemirror.css')}}"></link>
+<script src="{{url_for('static', filename='js/codemirror-stex.js')}}"></script>    
+{% endblock %}
+
+{% block body %}
+
+<h1>Details for Exercise »{{exercise.identifier()}}«</h1>
+<ul>
+    <li>Description: {{exercise.description}}</li>
+    <li>Created by: {{exercise.creator}}</li>
+    <li>Last modified: {{exercise.modified}}</li>
+    <li>Tags: {{", ".join(exercise.tags)}}</li>
+</ul>
+{% if exercise.tex_preamble.__len__() > 0 %}
+    <h2>Extra preamble</h2>
+    <textarea class="latexeditor small">{{"\n".join(exercise.tex_preamble)|safe}}</textarea>
+{% endif %}
+{% for typ, dct in ("exercise", exercise.tex_exercise), ("solution", exercise.tex_solution) %}
+    <h2>{{typ}}</h2>
+    <div class="textabs" textype="{{typ}}">
+    <ul>
+        {% for lang in dct %}
+          <li><a href="#textab_{{typ}}_{{lang}}"><img width="26px" src="{{imagePath('{}.png'.format(lang))}}"/></a></li>
+        {% endfor %}
+    </ul>
+    {% for lang in dct %}
+        <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
+            <img class="texpreview" src="{{url_for('static', filename='exercises/{}/exercise_{}.png'.format(exercise.identifier(), lang), timestamp=exercise.modified)}}"/>
+            <textarea class="latexeditor ui-widget-content">{{dct[lang]}}</textarea>
+        </div>
+    {% endfor %}
+</div>
+{% endfor %}
+<script>
+    $( '.latexeditor' ).each(function(index, elem) {
+        issmall = $(elem).is(".small");
+        var editor = CodeMirror.fromTextArea($(elem)[0], {lineWrapping:true, lineNumbers:false, readOnly:true});
+        if (issmall)
+            editor.setSize(null, 50);
+    });
+    $(".textabs").tabs();
+</script>
+
+{% endblock %}

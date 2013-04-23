@@ -4,3 +4,5 @@ exdb_webapp.egg-info
 .pydevproject
 .settings
 *.pyc
+*solution*.png
+*exercise*.png
