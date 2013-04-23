@@ -22,8 +22,9 @@
                 return '<img class="tooltipimage" src="' + element.attr("imgurl") + '"/>';
             }
         });
-        $(".removelink").click( function(event) {
+        $(document).on("click", ".removelink", function(event) {
             event.preventDefault();
+            console.log("click");
             table = $(this).closest(".exercise_listentry");
             console.log($(this));
             creator = table.attr("creator");
@@ -98,7 +99,7 @@
         var toolbar = $('<div class="exercise_toolbar"></div>');
         toolbar.append($("<a>details</a>").attr("href", "/details/"+data.creator+"/"+data.number));
         toolbar.append($("<a>edit</a> ").attr("href", "/edit/"+data.creator+"/"+data.number));
-        toolbar.append($('<a class="removelink" href="#">remove</a>'));
+        toolbar.append($('<a href="#">remove</a>').attr("class", "removelink"));
         toolbar.append($('<span class="creator">entered by ' + data.creator + " modified " + data.modified + "</span>"));
         li.append(toolbar);
         $(".exerciselist").append(li);
