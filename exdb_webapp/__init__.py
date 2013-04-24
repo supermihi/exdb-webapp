@@ -6,6 +6,7 @@
 # published by the Free Software Foundation
 
 import subprocess, os, shutil
+from os.path import join, exists
 import uuid
 import json
 from functools import wraps
@@ -44,7 +45,7 @@ def login():
     if request.method == "POST":
         users = {}
         import hashlib
-        with open(os.path.join(exdb.instancePath, 'users.txt'), "rt") as userFile:
+        with open(join(exdb.instancePath, 'users.txt'), "rt") as userFile:
             for line in userFile:
                 user, hash = line.strip().split("|", 1)
                 users[user] = hash
@@ -107,8 +108,8 @@ def details(creator, number):
 @login_required
 def settings():
     tPath = exdb.repo.templatePath()
-    template = open(os.path.join(tPath, "template.tex"), "rt").read().decode('utf-8')
-    preamble = open(os.path.join(tPath, "preamble.tex"), "rt").read().decode('utf-8')
+    template = open(join(tPath, "template.tex"), "rt").read().decode('utf-8')
+    preamble = open(join(tPath, "preamble.tex"), "rt").read().decode('utf-8')
     repoUrl = exdb.repo.remoteUrl()
     return render_template("settings.html", template=template, preamble=preamble, repoUrl=repoUrl)
 
@@ -127,7 +128,7 @@ def rpclatex():
     try:
         imgfile = exdb.tex.makePreview(tex, preambles=preambles, lang=lang)
         filename = secure_filename("{}_{}_{}.png".format(session['uid'], lang, type))
-        staticPath = os.path.join(app.root_path, "static", filename)
+        staticPath = join(app.static_folder, filename)
         shutil.copyfile(imgfile, staticPath)
         return jsonify(status="ok", imgsrc=url_for("static", filename=filename))
     except exdb.tex.CompilationError as e:
@@ -156,3 +157,9 @@ def before_request():
 def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
+        
+@app.before_first_request
+def initialize():
+    staticExercisesLink = join(app.static_folder, "exercises")
+    if not exists(join(app.static_folder, staticExercisesLink)):        
+        os.link(join(exdb.repo.repoPath(), "exercises"), staticExercisesLink)
