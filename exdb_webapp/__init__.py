@@ -1,14 +1,23 @@
-from flask import Flask, jsonify, g, render_template, redirect, request, session, url_for
-from werkzeug import secure_filename
+# -*- coding: utf-8 -*-
+# Copyright 2013 Michael Helmling
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation
+
 import subprocess, os, shutil
 import uuid
 import json
+from functools import wraps
+
+from flask import Flask, jsonify, g, render_template, redirect, request, session, url_for
+from werkzeug import secure_filename
 
 import exdb.tex, exdb.sql
 
+
 app = Flask(__name__)
 
-from functools import wraps
 
 def imagePath(filename):
     return url_for("static", filename="images/{}".format(filename))

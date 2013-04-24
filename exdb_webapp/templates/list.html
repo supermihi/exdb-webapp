@@ -11,6 +11,7 @@
         // initialize the tag filters list
         updateTagFilters();
         searchExercises([]);
+        $("#clearfilters").click( clearFilters );
     });
 </script>
 {% endblock %}
@@ -18,7 +19,9 @@
 {% block body %}
 
 <!-- A checkable button for each available tag to filter exercises -->
-<div id="tagfilters">
+<div id="filterdiv">
+    <div id="tagfilters"></div>
+    <a id="clearfilters" href="#">clear filters</a>
 </div>
 
 

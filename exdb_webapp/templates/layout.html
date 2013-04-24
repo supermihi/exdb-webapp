@@ -11,9 +11,6 @@
     <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='js/jquery-ui-1.10.2.custom.js')}}"></script>
     
     <script>
-        $(function() {
-            $("#logout").button();
-        });
         rpclatexUrl='{{url_for("rpclatex")}}';
         listUrl='{{url_for("list")}}';
     </script>
@@ -21,7 +18,6 @@
 </head>
 
 <body>
-    
 <div class="page">
   {% if session.get("user") %}
     <div class="toolbar">
@@ -34,5 +30,4 @@
 </div>
   
 </body>
-
 </html>

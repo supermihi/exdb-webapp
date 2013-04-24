@@ -39,3 +39,8 @@ function updateTagFilters() {
         });
     });
 };
+
+function clearFilters() {
+    $(".filterbutton").prop("checked", false).button("refresh");
+    searchExercises();
+};
