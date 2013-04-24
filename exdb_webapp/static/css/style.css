@@ -31,7 +31,7 @@ body {
     color:red;
     font-style:bold;
 }
-#tagfilter {padding: 5px;}
+#tagfilters {padding: 5px;}
 .filtertext {padding: 1px; font-size:65%; margin-bottom:2px}
 #preambles { list-style-type: none; margin: 0; padding: 0; }
 #preambles li input {width: 90%; padding: .4em; padding: .4em; margin: 2px}
@@ -42,6 +42,7 @@ input.text { margin-bottom:12px; width:95%; padding: .4em; }
 .ui-tooltip {width: 600px; max-width: 600px; background-color: white}
 .tooltipimage {width: 600px }
 .exercise_toolbar a {margin-right:10px}
+.exerciseflag {width:26px}
 .progress-label {
 float: left;
 margin-left: 25%;

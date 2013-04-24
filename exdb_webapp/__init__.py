@@ -111,15 +111,18 @@ def rpclatex():
     except exdb.tex.ConversionError as e:
         return jsonify(status="error", log=str(e))
 
-@app.route('/search', methods=["POST"])
+@app.route('/partial/tagfilters')
+@login_required
+def tagfilters():
+    tags = exdb.sql.tags(g.db)
+    return render_template("tagfilters.html", tags=tags)
+
+@app.route('/partial/search', methods=['POST'])
 @login_required
 def search():
     tags = json.loads(request.form['tags'])
     exercises = exdb.sql.searchExercises(tags=tags, connection=g.db)
-    for exercise in exercises:
-        exercise.modified = exercise.modified.strftime(exercise.DATEFMT)
-    jsonExercises = json.dumps(exercises)
-    return jsonify(status="ok", exercises=jsonExercises)
+    return render_template("exercises.html", exercises=exercises)
 
 @app.before_request
 def before_request():

@@ -1,0 +1,3 @@
+{% for tag in tags %}
+    <input type="checkbox" id="tagbutton{{tag}}" tag="{{tag}}" class="filterbutton"/><label class="filtertext" for="tagbutton{{tag}}">{{tag}}</label>
+{% endfor %}

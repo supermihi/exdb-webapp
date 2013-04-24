@@ -1,27 +1,39 @@
 {% extends "layout.html" %}
+
+{% block head %}
+<script src="{{url_for('static', filename='js/exdb.js')}}"></script>
+<script>
+    tagfiltersUrl='{{url_for("tagfilters")}}';
+    searchUrl='{{url_for("search")}}';
+    $( function() {
+        // image tooltips for exercise and solution flags
+        enableImgTooltips();
+        // initialize the tag filters list
+        updateTagFilters();
+        searchExercises([]);
+    });
+</script>
+{% endblock %}
+
 {% block body %}
 
-<div id="tagfilter">
-    <p>Filter:</p>
-    {% for tag in tags %}
-        <input type="checkbox" id="tagbutton{{tag}}" tag="{{tag}}" class="filterbutton"/><label class="filtertext" for="tagbutton{{tag}}">{{tag}}</label>
-    {% endfor %}
+<!-- A checkable button for each available tag to filter exercises -->
+<div id="tagfilters">
 </div>
+
+
+<!-- the list of exercises matching the filter (generated dynamically by ajax calls)-->
 <ul class="exerciselist">
 </ul>
+
+<!-- confirm dialog for removing exercises; normally hidden -->
 <div id="confirm_remove" title="Really delete exercise?">
 <p id="remove_dialog_message"><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span></p>
 </div>
 
+
 <script>
     $( function() {
-        $(document).tooltip({
-            items: ".exerciseflag",
-            content: function() {
-                var element = $(this);
-                return '<img class="tooltipimage" src="' + element.attr("imgurl") + '"/>';
-            }
-        });
         $(document).on("click", ".removelink", function(event) {
             event.preventDefault();
             table = $(this).closest(".exercise_listentry");
@@ -40,64 +52,21 @@
                 Ok: function() {
                     creator = $(this).data("creator");
                     number = $(this).data("number");
-                    $.post(removeUrl, { creator: creator, number: number },
-                       function(resp) {
-                           $('.exercise_listentry[creator="' + creator + '"][number="' + number + '"]').remove(); }
+                    $.post(
+                        '{{url_for("remove")}}',
+                        { creator: creator, number: number },
+                        function(resp) {
+                           $('.exercise_listentry[creator="' + creator + '"][number="' + number + '"]').remove();
+                           updateTagFilters();
+                        }
                     );
-                    $(this).dialog( "close");
+                    $(this).dialog("close");
                 },
                 Cancel: function() {
                     $(this).dialog("close");
                 }
             }
-        });
-        $(".filterbutton").button().click(function(event) {
-            selected = []
-            $(".filterbutton").each( function(index, elem) {
-                if ($(elem).is(":checked"))
-                    selected.push($(elem).attr("tag"));
-            });
-            searchExercises(selected);
-            
-        });
-        searchExercises([]);
-            
-    });
-    function searchExercises(tags) {
-        $.post('{{url_for("search")}}', { tags: JSON.stringify(tags) }, function(resp) {
-            ans = $.parseJSON(resp['exercises']);
-            $(".exerciselist").empty();
-            for (var i in ans) {
-                exercise = ans[i];
-                addExercise(exercise);
-            }
-        });
-    };
-    function addExercise(data) {
-        var li = $('<li class="exercise_listentry"></li>').attr("creator", data.creator).attr("number", data.number);
-        var table = $('<table></table>');
-        function addRow(left, right) {
-            table.append("<tr><td>" + left + "</td><td>"+right+"</td></tr>");
-        }
-        addRow("Description:", data.description);
-        addRow("Tags:", data.tags.join(", "));
-        exFlags = "";
-        for (var lang in data.tex_exercise)
-            exFlags += '<img class="exerciseflag" width="26px" src="/static/images/'+lang+'.png" imgurl="/static/exercises/'+data.creator+data.number + '/exercise_'+lang+'.png" />';
-        addRow("Exercise:", exFlags);
-        solFlags = "";
-        for (var lang in data.tex_solution)
-            solFlags += '<img class="exerciseflag" width="26px" src="/static/images/'+lang+'.png" imgurl="/static/exercises/'+data.creator+data.number + '/solution_'+lang+'.png" />';
-        if (solFlags != "")
-            addRow("Solution:", solFlags);
-        li.append(table);
-        var toolbar = $('<div class="exercise_toolbar"></div>');
-        toolbar.append($("<a>details</a>").attr("href", "/details/"+data.creator+"/"+data.number));
-        toolbar.append($("<a>edit</a> ").attr("href", "/edit/"+data.creator+"/"+data.number));
-        toolbar.append($('<a href="#">remove</a>').attr("class", "removelink"));
-        toolbar.append($('<span class="creator">entered by ' + data.creator + " modified " + data.modified + "</span>"));
-        li.append(toolbar);
-        $(".exerciselist").append(li);
-    };           
+        });            
+    });        
 </script>
 {% endblock %}
