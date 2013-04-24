@@ -132,7 +132,6 @@ def rpclatex():
         shutil.copyfile(imgfile, staticPath)
         return jsonify(status="ok", imgsrc=url_for("static", filename=filename))
     except exdb.tex.CompilationError as e:
-        print(e.log[9720:])
         return jsonify(status="error", log=e.log.decode('utf-8', 'ignore'))
     except exdb.tex.ConversionError as e:
         return jsonify(status="error", log=str(e))
