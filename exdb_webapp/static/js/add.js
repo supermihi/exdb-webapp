@@ -117,7 +117,6 @@ var preambles = function() {
 
 var tags = function() {
     value = $("#tags").val().replace(/[\s,]+$/g, '');
-    console.log(value);
     return split(value);
 }
 

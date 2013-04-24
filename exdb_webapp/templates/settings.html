@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<script src="{{url_for('static', filename='js/codemirror.js')}}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/codemirror.css')}}"></link>
+<script src="{{url_for('static', filename='js/codemirror-stex.js')}}"></script>
+{% endblock %}
+
+
+{% block body %}
+<h1>Settings</h1>
+<h2>Template for compiling exercises and solutions</h2>
+<textarea class="latexeditor ui-widget-content">{{template|safe}}</textarea>
+<h2>Preamble for compiling exercises and solutions</h2>
+<textarea class="latexeditor ui-widget-content">{{preamble|safe}}</textarea>
+{% if repoUrl %}
+    <h2>Repository URL</h2>
+    <pre class="url">{{repoUrl}}</pre>
+{% endif %}
+<script>
+    $( function () {
+        $( '.latexeditor' ).each(function(index, elem) {
+            var editor = CodeMirror.fromTextArea($(elem)[0], {lineWrapping:true, readOnly:true});
+        });
+    });
+</script>
+{% endblock %}

@@ -25,9 +25,9 @@
 <div class="page">
   {% if session.get("user") %}
     <div class="toolbar">
-        <a href="{{ url_for('list') }}">list</a>
-        <a href="{{ url_for('add') }}">add</a>
-        <a href="{{ url_for('logout') }}">logout</a>
+        {% for link in ["list", "add", "history", "settings", "logout"] %}
+          <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
+        {% endfor %}
     </div>
   {% endif %}
   {% block body %}{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<h1>Recent changes</h1>
+<ul>
+    {% for entry in entries %}
+    <li>On {{entry["date"]}} by {{entry["author"]}}: {% if entry["action"] %}{{entry["action"]}} <a href="{{url_for('details', creator=entry['creator'], number=entry['number'])}}">{{entry["creator"]}}{{entry["number"]}}{% else %}{{entry["description"]}}{% endif %}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

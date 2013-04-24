@@ -61,6 +61,7 @@ def add():
     if request.method == "POST":
         data = json.loads(request.form["data"])
         exercise = exdb.exercise.Exercise(creator=session['user'])
+        data["tags"] = [ tag for tag in data["tags"] if tag.strip() != ""]
         for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
             setattr(exercise, key, data[key])
         exdb.addExercise(exercise, True, connection=g.db)
@@ -92,7 +93,21 @@ def remove():
 def details(creator, number):
     exercise = exdb.sql.exercise(creator, number, connection=g.db)
     return render_template("details.html", exercise=exercise)
-    
+
+@app.route('/settings')
+@login_required
+def settings():
+    tPath = exdb.repo.templatePath()
+    template = open(os.path.join(tPath, "template.tex"), "rt").read().decode('utf-8')
+    preamble = open(os.path.join(tPath, "preamble.tex"), "rt").read().decode('utf-8')
+    repoUrl = exdb.repo.remoteUrl()
+    return render_template("settings.html", template=template, preamble=preamble, repoUrl=repoUrl)
+
+@app.route('/history')
+@login_required
+def history():
+    data = exdb.repo.history()
+    return render_template("history.html", entries=data)
 @app.route('/rpclatex', methods=["POST"])
 @login_required
 def rpclatex():
