@@ -1,10 +1,11 @@
+<p style="font-style:italic">{{exercises|length}} exercise{{"s" if exercises|length != 1 else ""}} match{{"es" if exercises|length==1 else ""}} filter</p>
 {% for exercise in exercises %}
     <li number="{{exercise.number}}" creator="{{exercise.creator}}" class="exercise_listentry">
         <table><tbody>
             <tr><td>Description:</td><td>{{exercise.description}}</td></tr>
             <tr><td>Tags:</td><td class="taglist">{{", ".join(exercise.tags)}}</td></tr>
             {% for (typ, dct) in ("exercise", exercise.tex_exercise), ("solution", exercise.tex_solution) %}
-            <tr><td>{{typ}}:</td><td>
+            <tr><td>{{typ|capitalize}}:</td><td>
                 {% for lang, tex in dct.items() %}
                 <img
                   class="exerciseflag"

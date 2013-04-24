@@ -50,7 +50,7 @@
 <button id="addpreamble">add line</button>
 
 {% for typ in ("exercise", "solution") %}
-    <h2>{{typ}} tex code</h2>
+    <h2>{{typ|capitalize}} tex code</h2>
     <div class="textabs" textype="{{typ}}">
         <ul>
             {% for lang in "DE", "EN" %}
