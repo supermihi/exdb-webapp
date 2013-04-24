@@ -71,7 +71,7 @@ def add():
     if request.method == "POST":
         data = json.loads(request.form["data"])
         exercise = exdb.exercise.Exercise(creator=session['user'])
-        data["tags"] = [ tag for tag in data["tags"] if tag.strip() != ""]
+        data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
         for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
             setattr(exercise, key, data[key])
         exdb.addExercise(exercise, connection=g.db)
