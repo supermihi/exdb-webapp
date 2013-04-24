@@ -9,7 +9,7 @@
                 <img
                   class="exerciseflag"
                   src="{{url_for('static', filename='images/{}.png'.format(lang))}}"
-                  imgurl="{{url_for('static', filename='exercises/{}/{}_{}.png'.format(exercise.identifier(), typ, lang))}}"
+                  imgurl="{{url_for('preview', creator=exercise.creator, number=exercise.number, type=typ, lang=lang)}}"
                 />
                 {% endfor %}
             </td></tr>

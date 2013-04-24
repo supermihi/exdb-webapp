@@ -11,7 +11,7 @@ import uuid
 import json
 from functools import wraps
 
-from flask import Flask, jsonify, g, render_template, redirect, request, session, url_for
+from flask import Flask, jsonify, g, render_template, redirect, request, send_file, session, url_for
 from werkzeug import secure_filename
 
 import exdb.tex, exdb.sql
@@ -153,13 +153,14 @@ def search():
 def before_request():
     g.db = exdb.sql.connect()
 
+@app.route('/preview/<creator>/<int:number>/<type>/<lang>')
+@login_required
+def preview(creator, number, type, lang):
+    print(exdb.repo.repoPath())
+    return send_file(join(exdb.repo.repoPath(), "exercises", "{}{}".format(creator, number),
+                   "{}_{}.png".format(type, lang)))
+
 @app.teardown_request
 def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
-        
-@app.before_first_request
-def initialize():
-    staticExercisesLink = join(app.static_folder, "exercises")
-    if not exists(join(app.static_folder, staticExercisesLink)):        
-        os.link(join(exdb.repo.repoPath(), "exercises"), staticExercisesLink)
