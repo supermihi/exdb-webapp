@@ -29,7 +29,7 @@
     </ul>
     {% for lang in dct %}
         <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
-            <img class="texpreview" src="{{url_for('static', filename='exercises/{}/exercise_{}.png'.format(exercise.identifier(), lang), timestamp=exercise.modified)}}"/>
+            <img class="texpreview" src="{{url_for('static', filename='exercises/{}/{}_{}.png'.format(exercise.identifier(), typ, lang), timestamp=exercise.modified)}}"/>
             <textarea class="latexeditor ui-widget-content">{{dct[lang]}}</textarea>
         </div>
     {% endfor %}

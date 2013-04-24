@@ -38,7 +38,7 @@ $(function() {
         });
     $('.textabs').each(function(index, elem) {
         $(elem).tabs({collapsible: true});
-    });
+        });
     $( '.compilebutton' )
         .button()
         .click(function(event) {
@@ -62,11 +62,10 @@ $(function() {
             var waiting = 4;
             var noTex = 0;
             var errors = false;
+            $("#wait_submit").dialog("open");
             $(".compilebutton").each(function(index, elem) {
-                console.log("some button");
                 var req = compileSnippet($(elem));
                 if (req == 0) {
-                    console.log("no tex here");
                     waiting -= 1;
                     noTex += 1;
                     if (noTex == 4)
@@ -83,12 +82,17 @@ $(function() {
                     } else {
                         errors = true;
                         alert("please fix compilation errors first");
+                        $("#wait_submit").dialog("close");
                     }
                 });
                 req.fail( function(req, status, err) {
                     alert("Server error");
                 });
             });
+        });
+    $("#wait_submit").dialog({
+        autoOpen:false,
+        modal:true
         });
 });
 
@@ -181,7 +185,6 @@ var submit = function() {
     });
     data["tex_exercise"] = tex_exercise;
     data["tex_solution"] = tex_solution;
-    console.log("tex_solution = " + tex_solution);
     data["tex_preamble"] = preambles();
     data["description"] = $("#description").val();
     data["tags"] = tags();
@@ -197,7 +200,7 @@ var submit = function() {
             console.log("nope submit bad");
         },
         async : false
-    });
+    }).always(function() {$("#wait_submit").dialog("close");});
 }
 
 split = function( val ) {

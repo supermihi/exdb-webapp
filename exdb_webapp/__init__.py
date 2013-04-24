@@ -74,7 +74,7 @@ def add():
         data["tags"] = [ tag for tag in data["tags"] if tag.strip() != ""]
         for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
             setattr(exercise, key, data[key])
-        exdb.addExercise(exercise, True, connection=g.db)
+        exdb.addExercise(exercise, connection=g.db)
         return jsonify(status="ok")
     return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"))
 
