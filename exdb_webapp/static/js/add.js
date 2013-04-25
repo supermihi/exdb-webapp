@@ -1,60 +1,77 @@
-editors = {}
+editors = {} // global dict holding the TeX editors; maps textype+lang to CodeMirror object
+
 $(function() {
+    // turn the textareas into latex editors
     $( '.latexeditor' ).each(function(index, elem) {
-        var lang = $(elem).parent().attr("lang");
-        var textype = $(elem).parent().attr("textype");
         var editor = CodeMirror.fromTextArea($(elem)[0], {lineWrapping:true, lineNumbers:true});
-        editors[textype+lang] = editor;
+        parent = $(elem).parent();
+        editors[parent.attr("textype")+parent.attr("lang")] = editor;
     });
-    if (mode == "add")
-        $(".texpreview").hide();
+    
+    // hide inactive elements
+    $(".texpreview").not("[src]").hide();
     $(".errorlog").hide();
+    
+    // autocompletion for the tags (stolen from jQueryUI examples)
     $("#tags").bind( "keydown", function( event ) {
-        if ( event.keyCode === $.ui.keyCode.TAB &&
-            $( this ).data( "ui-autocomplete" ).menu.active ) {
-            event.preventDefault();
-        }
-    }).autocomplete({
-        minLength: 0,
-        source: function( request, response ) {
-            response( $.ui.autocomplete.filter(
-                availableTags, extractLast( request.term ) ) );
-        },
-        focus: function() {
-            return false;
-        },
-        select: function( event, ui ) {
-            var terms = split( this.value );
-            terms.pop();
-            terms.push( ui.item.value );
-            terms.push("")
-            this.value = terms.join( ", " );
-            return false;
-        }
-    });
+            if ( event.keyCode === $.ui.keyCode.TAB &&
+                $( this ).data( "ui-autocomplete" ).menu.active ) {
+                event.preventDefault();
+            }
+        }).autocomplete({
+            minLength: 0,
+            source: function( request, response ) {
+                response( $.ui.autocomplete.filter(
+                    availableTags, extractLast( request.term ) ) );
+            },
+            focus: function() {
+                return false;
+            },
+            select: function( event, ui ) {
+                var terms = split( this.value );
+                terms.pop();
+                terms.push( ui.item.value );
+                terms.push("")
+                this.value = terms.join( ", " );
+                return false;
+            }
+        });
+        
+    // make jQueryUI tabs for exercise/solution edit components
     $('.textabs').each(function(index, elem) {
         $(elem).tabs();
         });
+    
+    // make compile buttons that call compileSnippet()
     $( '.compilebutton' )
         .button()
         .click(function(event) {
             event.preventDefault();
             compileSnippet($(this));            
         });
+    
+    // activate addPreamble button
     $("#addpreamble")
         .button()
         .click(function(event) {
             event.preventDefault();
             addPreambleLine();
         });
+    
+    // activate submit button
     $("#submitbutton")
         .button()
         .click(function(event) {
             event.preventDefault();
+            // check that a description has been entered
             if ( $.trim($("#description").val()) == "") {
                 alert("Please enter a description");
                 return;
             }
+            
+            // now "click" all compilebuttons and wait for the
+            // responses; if it's okay then really call submit function
+            
             var waiting = 4;
             var noTex = 0;
             var errors = false;
@@ -165,6 +182,7 @@ var compileSnippet = function(button) {
     });
     return req;
 };
+
 var submit = function() {
     var data = {};
     var tex_solution = {};
