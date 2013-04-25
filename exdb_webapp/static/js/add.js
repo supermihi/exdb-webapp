@@ -6,7 +6,8 @@ $(function() {
         var editor = CodeMirror.fromTextArea($(elem)[0], {lineWrapping:true, lineNumbers:true});
         editors[textype+lang] = editor;
     });
-    $(".texpreview").hide();
+    if (mode == "add")
+        $(".texpreview").hide();
     $(".errorlog").hide();
     $("#tags").bind( "keydown", function( event ) {
         if ( event.keyCode === $.ui.keyCode.TAB &&
@@ -132,14 +133,15 @@ var compileSnippet = function(button) {
     progress.append(proglabel);
     progress.progressbar({value: false  });
     button.parent().prepend(progress);
+    data = { tex : editor.getValue(), lang: lang, type:textype, preambles: JSON.stringify(preambles())};
+    if (mode == "edit") {
+        data.creator = creator;
+        data.number = number;
+    }
     req = $.ajax({
         type : 'POST',
         url  : rpclatexUrl,
-        data : {tex : editor.getValue(),
-                lang: lang,
-                type: textype,
-                preambles: JSON.stringify(preambles())
-                },
+        data : data,
         dataType : 'json',
         success : function (resp) {
             if (resp['status'] == 'ok') {

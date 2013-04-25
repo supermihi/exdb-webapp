@@ -5,69 +5,67 @@
 <link rel="stylesheet" href="{{url_for('static', filename='css/codemirror.css')}}"></link>
 <script src="{{url_for('static', filename='js/codemirror-stex.js')}}"></script>
 <script>
-    mode={% if exercise %}"edit"{% else %}"add"{% endif %};
+    {% if exercise %}
+        mode = "edit";
+        creator = "{{exercise.creator}}";
+        number = {{exercise.number}};
+    {% else %}
+        mode = "add";
+    {% endif %}
     availableTags = $.parseJSON('{{tags|safe}}');
 </script>
 <script src="{{url_for('static', filename='js/add.js')}}"></script>
-
 {% if exercise %}
-    <script>
-        $( function() {
-            $("#description").val("{{exercise.description}}");
-            $("#tags").val("{{",".join(exercise.tags)}}");
-            {% for line in exercise.tex_preamble %}
-                addPreambleLine("{{line.replace('\\', '\\\\')}}");
-            {% endfor %}
-            {% if "DE" not in exercise.tex_exercise %}
-                $('.textabs[textype="exercise"]').tabs("option", "active", 1);
-            {% endif %}
-            {% if ("DE" not in exercise.tex_solution) and ("EN" in exercise.tex_solution) %}
-                $('.textabs[textype="solution"]').tabs("option", "active", 1);
-            {% endif %}
-        });
-    </script>
+<script>
+    $(function() {
+        $("#description").val("{{exercise.description}}");
+        $("#tags").val("{{",".join(exercise.tags)}}");
+        {% for line in exercise.tex_preamble %}
+            addPreambleLine("{{line.replace('\\', '\\\\')}}");
+        {% endfor %}
+        {% if "DE" not in exercise.tex_exercise %}
+            $('.textabs[textype="exercise"]').tabs("option", "active", 1);
+        {% endif %}
+        {% if ("DE" not in exercise.tex_solution) and ("EN" in exercise.tex_solution) %}
+            $('.textabs[textype="solution"]').tabs("option", "active", 1);
+        {% endif %}
+    });
+</script>
 {% endif %}
 {% endblock %}
 
 {% block body %}
-<h1>{% if exercise %}
-        Modify exercise {{exercise.identifier()}}
-    {% else %}
-        New Exercise
-    {% endif %}
-</h1>
+<h1>{% if exercise %}Modify exercise {{exercise.identifier()}}{% else %}New Exercise{% endif %}</h1>
 
-<form>
-    <fieldset>
-        <label for="description">Description</label>
-        <input type="text" name="description" id="description" class="text ui-widget-content ui-corner-all"></input>
-        <label for="tags">Tags <span class="comment">(please use english tag names for consistency)</span></label>
-        <input name="tags" id="tags" class="text ui-widget-content ui-corner-all" />
-        <label for="preamble">Preamble</label>
-        <ul id="preambles">
-        </ul>
-        <button id="addpreamble">add line</button>
+<form><fieldset>
+    <label for="description">Description</label>
+    <input type="text" id="description" class="text ui-widget-content ui-corner-all"></input>
+    <label for="tags">Tags <span class="comment">(please use english tag names for consistency)</span></label>
+    <input id="tags" class="text ui-widget-content ui-corner-all" />
+    <label for="preamble">Preamble</label>
+    <ul id="preambles">
+    </ul>
+    <button id="addpreamble">add line</button>
 
-        {% for typ in ("exercise", "solution") %}
-            <h2>{{typ|capitalize}} tex code</h2>
-            <div class="textabs" textype="{{typ}}">
-                <ul>
-                    {% for lang in "DE", "EN" %}
-                      <li><a href="#textab_{{typ}}_{{lang}}"><img width="26px" src="{{imagePath('{}.png'.format(lang))}}"/></a></li>
-                    {% endfor %}
-                </ul>
+    {% for typ in ("exercise", "solution") %}
+        <h2>{{typ|capitalize}} tex code</h2>
+        <div class="textabs" textype="{{typ}}">
+            <ul>
                 {% for lang in "DE", "EN" %}
-                    <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
-                        <img class="texpreview"/>
-                        <div class="errorlog"><label class="errormsg">Error compiling source</label><pre></pre></div>
-                        <textarea class="latexeditor ui-widget-content">{% if exercise %}{{exercise["tex_{}".format(typ)][lang]}}{% endif %}</textarea>
-                        <button class="compilebutton">compile</button>
-                    </div>
+                  <li><a href="#textab_{{typ}}_{{lang}}"><img src="{{imagePath('{}.png'.format(lang))}}"/></a></li>
                 {% endfor %}
-            </div>
-        {% endfor %}
-    </fieldset>
-</form>
+            </ul>
+            {% for lang in "DE", "EN" %}
+                <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
+                    <img class="texpreview" {% if exercise and lang in exercise["tex_{}".format(typ)] %}src="{{url_for('preview', creator=exercise.creator, number=exercise.number, type=typ, lang=lang)}}"{% endif %}/>
+                    <div class="errorlog"><label class="errormsg">Error compiling source</label><pre></pre></div>
+                    <textarea class="latexeditor ui-widget-content">{% if exercise %}{{exercise["tex_{}".format(typ)][lang]}}{% endif %}</textarea>
+                    <button class="compilebutton">compile</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</fieldset></form>
 
 <button id="submitbutton">submit</button>
 <!-- waiting dialog for submit; normally hidden -->

@@ -9,6 +9,7 @@ import subprocess, os, shutil
 from os.path import join, exists
 import uuid
 import json
+import copy
 from functools import wraps
 
 from flask import Flask, jsonify, g, render_template, redirect, request, send_file, session, url_for
@@ -71,7 +72,6 @@ def add():
     if request.method == "POST":
         data = json.loads(request.form["data"])
         exercise = exdb.exercise.Exercise(creator=session['user'])
-        data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
         for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
             setattr(exercise, key, data[key])
         exdb.addExercise(exercise, connection=g.db)
@@ -83,10 +83,12 @@ def add():
 def edit(creator, number):
     exercise = exdb.sql.exercise(creator, number)
     if request.method == "POST":
+        copyExercise = copy.copy(exercise)
         data = json.loads(request.form["data"])
+        data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
         for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
-            setattr(exercise, key, data[key])
-        exdb.updateExercise(exercise, connection=g.db, user=session['user'])
+            setattr(copyExercise, key, data[key])
+        exdb.updateExercise(copyExercise, old=exercise, connection=g.db, user=session['user'])
         return jsonify(status="ok")
     return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"), exercise=exercise)
 
@@ -118,12 +120,19 @@ def settings():
 def history():
     data = exdb.repo.history()
     return render_template("history.html", entries=data)
+
 @app.route('/rpclatex', methods=["POST"])
 @login_required
 def rpclatex():
     tex = request.form['tex']
     lang = request.form['lang']
     type = request.form['type']
+    if 'creator' in request.form:
+        creator = request.form["creator"]
+        number = request.form["number"]
+        exercise = exdb.sql.exercise(creator=creator, number=number)
+        if tex == exercise["tex_{}".format(type)][lang]:
+            return jsonify(status="ok", imgsrc=url_for("preview", creator=creator, number=number, type=type, lang=lang))
     preambles = json.loads(request.form['preambles'])
     try:
         imgfile = exdb.tex.makePreview(tex, preambles=preambles, lang=lang)
