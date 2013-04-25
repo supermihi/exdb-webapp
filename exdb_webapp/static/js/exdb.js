@@ -29,9 +29,13 @@ function searchExercises() {
     $(".filterbutton[lang]:checked").each( function(index, elem) {
         langs.push($(elem).attr("lang"));
     });
-    $.post(searchUrl, {tags: JSON.stringify(tags), langs: JSON.stringify(langs)}, function(resp) {
-        $(".exerciselist").empty().append(resp);
-    });
+    description = $("#searchfield").val() || "";
+    $.post(searchUrl,
+           {tags: JSON.stringify(tags), langs: JSON.stringify(langs), description : description},
+           function(resp) {
+                $(".exerciselist").empty().append(resp);
+           }
+    );
 };
 
 function updateTagFilters() {
@@ -40,10 +44,20 @@ function updateTagFilters() {
         $(".filterbutton").button().click(function(event) {
             searchExercises();
         });
+        $("#searchfield").keyup(function(event) {
+            var val = $(this).val();
+            setTimeout(function() {
+                if ($("#searchfield").val() == val) {
+                    console.log($("#searchfield").val());
+                    searchExercises();
+                }
+                }, 200);
+        });
     });
 };
 
 function clearFilters() {
     $(".filterbutton").prop("checked", false).button("refresh");
+    $("#searchfield").val("");
     searchExercises();
 };

@@ -156,7 +156,8 @@ def tagfilters():
 def search():
     tags = json.loads(request.form['tags'])
     langs = json.loads(request.form["langs"])
-    exercises = exdb.sql.searchExercises(tags=tags, langs=langs, connection=g.db)
+    description = request.form["description"]
+    exercises = exdb.sql.searchExercises(tags=tags, langs=langs, description=description, connection=g.db)
     return render_template("exercises.html", exercises=exercises)
 
 @app.before_request
@@ -166,7 +167,6 @@ def before_request():
 @app.route('/preview/<creator>/<int:number>/<type>/<lang>')
 @login_required
 def preview(creator, number, type, lang):
-    print(exdb.repo.repoPath())
     return send_file(join(exdb.repo.repoPath(), "exercises", "{}{}".format(creator, number),
                    "{}_{}.png".format(type, lang)))
 

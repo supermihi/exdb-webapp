@@ -37,7 +37,7 @@
 {% block body %}
 <h1>{% if exercise %}Modify exercise {{exercise.identifier()}}{% else %}New Exercise{% endif %}</h1>
 
-<form><fieldset>
+<form><fieldset id="exercisefields">
     <label for="description">Description</label>
     <input type="text" id="description" class="text ui-widget-content ui-corner-all"></input>
     <label for="tags">Tags <span class="comment">(please use english tag names for consistency)</span></label>
