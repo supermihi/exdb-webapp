@@ -146,7 +146,8 @@ def tagfilters():
 @login_required
 def search():
     tags = json.loads(request.form['tags'])
-    exercises = exdb.sql.searchExercises(tags=tags, connection=g.db)
+    langs = json.loads(request.form["langs"])
+    exercises = exdb.sql.searchExercises(tags=tags, langs=langs, connection=g.db)
     return render_template("exercises.html", exercises=exercises)
 
 @app.before_request

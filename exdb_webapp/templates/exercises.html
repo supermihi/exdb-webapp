@@ -1,21 +1,24 @@
-<p style="font-style:italic">{{exercises|length}} exercise{{"s" if exercises|length != 1 else ""}} match{{"es" if exercises|length==1 else ""}} filter</p>
+<p class="comment">{{exercises|length}} exercise{{"s" if exercises|length != 1 else ""}} match{{"es" if exercises|length==1 else ""}} filter</p>
 {% for exercise in exercises %}
-    <li number="{{exercise.number}}" creator="{{exercise.creator}}" class="exercise_listentry">
-        <table><tbody>
-            <tr><td>Description:</td><td>{{exercise.description}}</td></tr>
-            <tr><td>Tags:</td><td class="taglist">{{", ".join(exercise.tags)}}</td></tr>
-            {% for (typ, dct) in ("exercise", exercise.tex_exercise), ("solution", exercise.tex_solution) %}
-            <tr><td>{{typ|capitalize}}:</td><td>
+    <li number="{{exercise.number}}" creator="{{exercise.creator}}" class="exercise_listentry  ui-widget-content">
+        <table class="exercisetable"><thead><tr><th>{{exercise.description}}</th></tr></thead>
+        <tbody>
+            <tr><td class="taglist">{{", ".join(exercise.tags)}}</td></tr>
+            <tr><td>
+                {% for (typ, dct) in ("exercise", exercise.tex_exercise), ("solution", exercise.tex_solution) %}
+                {% if dct %}
+                <span class="flaglabel">{{typ|capitalize}}</span>
                 {% for lang, tex in dct.items() %}
                 <img
                   class="exerciseflag"
                   src="{{url_for('static', filename='images/{}.png'.format(lang))}}"
                   imgurl="{{url_for('preview', creator=exercise.creator, number=exercise.number, type=typ, lang=lang)}}"
                 />
+                <span style="margin-left:20px"></span>
                 {% endfor %}
-            </td></tr>
+                {% endif %}
             {% endfor %}
-        </tbody></table>
+            </td></tr></tbody></table>
         <div class="exercise_toolbar">
             <a href="{{url_for('details', creator=exercise.creator, number=exercise.number)}}">details</a>
             <a href="{{url_for('edit', creator=exercise.creator, number=exercise.number)}}">edit</a>

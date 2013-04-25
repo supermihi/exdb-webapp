@@ -22,11 +22,14 @@ ajaxReplaceContentPost = function(url, selector, data) {
               
 function searchExercises() {
     tags = []
-    $(".filterbutton").each( function(index, elem) {
-        if ($(elem).is(":checked"))
-            tags.push($(elem).attr("tag"));
+    langs = []
+    $(".filterbutton[tag]:checked").each( function(index, elem) {
+        tags.push($(elem).attr("tag"));
     });
-    $.post(searchUrl, {tags: JSON.stringify(tags)}, function(resp) {
+    $(".filterbutton[lang]:checked").each( function(index, elem) {
+        langs.push($(elem).attr("lang"));
+    });
+    $.post(searchUrl, {tags: JSON.stringify(tags), langs: JSON.stringify(langs)}, function(resp) {
         $(".exerciselist").empty().append(resp);
     });
 };

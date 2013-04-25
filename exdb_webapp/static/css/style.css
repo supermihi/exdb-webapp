@@ -9,6 +9,7 @@ body {
     padding: 0.5em;
     border: 2px solid gray;
     background-color: #FBFBFB;
+    margin-bottom: 400px;
 }
 .toolbar {
     text-align: right;
@@ -58,7 +59,11 @@ h3 {
 .taglist {
     font-style: italic;
     }
-.filtertext {padding: 1px; font-size:65%; margin-bottom:2px}
+.exercisetable th {
+    text-align: left;
+}
+    
+.filtertext {padding: 1px; font-size:80%; margin-bottom:2px}
 #preambles { list-style-type: none; margin: 0; padding: 0; }
 #preambles li input {width: 90%; padding: .4em; padding: .4em; margin: 2px}
 input.text { margin-bottom:12px; width:95%; padding: .4em; }
@@ -68,7 +73,6 @@ input.text { margin-bottom:12px; width:95%; padding: .4em; }
 .ui-tooltip {width: 600px; max-width: 600px; background-color: white}
 .tooltipimage {width: 600px }
 .exercise_toolbar a {margin-right:10px}
-.exerciseflag {width:26px}
 .progress-label {
     float: left;
     margin-left: 25%;
@@ -79,13 +83,4 @@ input.text { margin-bottom:12px; width:95%; padding: .4em; }
 .navlink {
     padding: 1px;
 }
-a {
-    text-decoration: none;
-    color:blue;
-    padding:1px;
-}
-a:hover {
-    background-color:#FFDDDD;
-}
-.navlink:visited {
-}
+.comment {font-style: italic}

@@ -39,36 +39,35 @@
 </h1>
 
 <form>
-<fieldset>
-<label for="description">Description</label>
-<input type="text" name="description" id="description" class="text ui-widget-content ui-corner-all"></input>
-<label for="tags">Tags</label>
-<input name="tags" id="tags" class="text ui-widget-content ui-corner-all" />
-<label for="preamble">Preamble</label>
-<ul id="preambles">
-</ul>
-<button id="addpreamble">add line</button>
-
-{% for typ in ("exercise", "solution") %}
-    <h2>{{typ|capitalize}} tex code</h2>
-    <div class="textabs" textype="{{typ}}">
-        <ul>
-            {% for lang in "DE", "EN" %}
-              <li><a href="#textab_{{typ}}_{{lang}}"><img width="26px" src="{{imagePath('{}.png'.format(lang))}}"/></a></li>
-            {% endfor %}
+    <fieldset>
+        <label for="description">Description</label>
+        <input type="text" name="description" id="description" class="text ui-widget-content ui-corner-all"></input>
+        <label for="tags">Tags <span class="comment">(please use english tag names for consistency)</span></label>
+        <input name="tags" id="tags" class="text ui-widget-content ui-corner-all" />
+        <label for="preamble">Preamble</label>
+        <ul id="preambles">
         </ul>
-        {% for lang in "DE", "EN" %}
-            <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
-                <img class="texpreview"/>
-                <div class="errorlog"><label class="errormsg">Error compiling source</label><pre></pre></div>
-                <textarea class="latexeditor ui-widget-content">{% if exercise %}{{exercise["tex_{}".format(typ)][lang]}}{% endif %}</textarea>
-                <button class="compilebutton">compile</button>
+        <button id="addpreamble">add line</button>
+
+        {% for typ in ("exercise", "solution") %}
+            <h2>{{typ|capitalize}} tex code</h2>
+            <div class="textabs" textype="{{typ}}">
+                <ul>
+                    {% for lang in "DE", "EN" %}
+                      <li><a href="#textab_{{typ}}_{{lang}}"><img width="26px" src="{{imagePath('{}.png'.format(lang))}}"/></a></li>
+                    {% endfor %}
+                </ul>
+                {% for lang in "DE", "EN" %}
+                    <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
+                        <img class="texpreview"/>
+                        <div class="errorlog"><label class="errormsg">Error compiling source</label><pre></pre></div>
+                        <textarea class="latexeditor ui-widget-content">{% if exercise %}{{exercise["tex_{}".format(typ)][lang]}}{% endif %}</textarea>
+                        <button class="compilebutton">compile</button>
+                    </div>
+                {% endfor %}
             </div>
         {% endfor %}
-    </div>
-{% endfor %}
-
-</fieldset>
+    </fieldset>
 </form>
 
 <button id="submitbutton">submit</button>
