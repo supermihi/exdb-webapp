@@ -18,7 +18,7 @@
             {% for line in exercise.tex_preamble %}
                 addPreambleLine("{{line.replace('\\', '\\\\')}}");
             {% endfor %}
-            {% if "DE" not in exercise.tex_solution %}
+            {% if "DE" not in exercise.tex_exercise %}
                 $('.textabs[textype="exercise"]').tabs("option", "active", 1);
             {% endif %}
             {% if ("DE" not in exercise.tex_solution) and ("EN" in exercise.tex_solution) %}
@@ -27,7 +27,6 @@
         });
     </script>
 {% endif %}
-
 {% endblock %}
 
 {% block body %}

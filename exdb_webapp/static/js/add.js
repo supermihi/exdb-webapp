@@ -32,7 +32,7 @@ $(function() {
         }
     });
     $('.textabs').each(function(index, elem) {
-        $(elem).tabs({collapsible: true});
+        $(elem).tabs();
         });
     $( '.compilebutton' )
         .button()
