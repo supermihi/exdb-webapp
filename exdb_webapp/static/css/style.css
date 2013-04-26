@@ -62,10 +62,22 @@ h3 {
 .exercisetable th {
     text-align: left;
 }
-    
-.filtertext {padding: 1px; font-size:80%; margin-bottom:2px}
-#preambles { list-style-type: none; margin: 0; padding: 0; }
-#preambles li input {width: 90%; padding: .4em; padding: .4em; margin: 2px}
+.filtertext {
+    padding: 1px;
+    font-size:80%;
+    margin-bottom:2px
+}
+#preambles {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+#preambles li input {
+    width: 90%;
+    padding: .4em;
+    padding: .4em;
+    margin: 2px
+}
 #exercisefields input.text { margin-bottom:12px; width:95%; padding: .4em; }
 .exerciselist {list-style-type: none; margin: 0; padding: 0}
 .exerciselist li { border: 1px solid gray; padding: 2px; margin-bottom: 6px;}
@@ -84,3 +96,8 @@ h3 {
     padding: 1px;
 }
 .comment {font-style: italic}
+.formlabel {
+    width: 10em;
+    display : block;
+    float : left;
+}

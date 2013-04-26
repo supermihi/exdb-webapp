@@ -13,14 +13,51 @@
 <textarea class="latexeditor ui-widget-content">{{template|safe}}</textarea>
 <h2>Preamble for compiling exercises and solutions</h2>
 <textarea class="latexeditor ui-widget-content">{{preamble|safe}}</textarea>
+<h2>Change password</h2>
+<div id="passwordmessagediv" class="ui-widget ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
+	<p id="passwordmessage"></p>
+</div>
+<form><fieldset class="passwordchanger">
+    <label class="formlabel" for="currentpassword">Current password:</label><input type="password" id="currentpassword"/><br/>
+    <label class="formlabel" for="newpassword1">New password:</label><input type="password" id="newpassword1"/><br/>
+    <label class="formlabel" for="newpassword2">Confirm password:</label><input type="password" id="newpassword2"/><br/>
+    <button id="changepwbutton">change password</button>
+</fieldset></form>
 {% if repoUrl %}
     <h2>Repository URL</h2>
     <pre class="url">{{repoUrl}}</pre>
 {% endif %}
 <script>
     $( function () {
+        var showPwMsg = function(message, error) {
+            $("#passwordmessage").text(message);
+            var div = $("#passwordmessagediv");
+            if (error) {
+                div.removeClass("ui-state-highlight");
+                div.addClass("ui-state-error");
+            } else {
+                div.removeClass("ui-state-error");
+                div.addClass("ui-state-highlight");
+            }
+            div.show();
+        };
+        $("#passwordmessagediv").hide();
         $( '.latexeditor' ).each(function(index, elem) {
             var editor = CodeMirror.fromTextArea($(elem)[0], {lineWrapping:true, readOnly:true});
+        });
+        $( '#changepwbutton' ).button().click( function(event) {
+            event.preventDefault();
+            $("#passwordmessagediv").hide();
+            if ($("#newpassword1").val() != $("#newpassword2").val()) {
+                showPwMsg("passwords do not match", true);
+                return;
+            }
+            $.post("{{url_for('changePassword')}}", { oldpw: $("#currentpassword").val(), newpw: $("#newpassword1").val() }, function(resp) {
+                if (resp["status"] == "ok")
+                    showPwMsg("Password successfully changed", false);
+                else
+                    showPwMsg(resp["message"], true);
+            });
         });
     });
 </script>

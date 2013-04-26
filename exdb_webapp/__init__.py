@@ -11,6 +11,7 @@ import uuid
 import json
 import copy
 from functools import wraps
+from collections import OrderedDict
 
 from flask import Flask, jsonify, g, render_template, redirect, request, send_file, session, url_for
 from werkzeug import secure_filename
@@ -40,20 +41,49 @@ def list():
     exercises = exdb.sql.exercises(connection=g.db)
     return render_template('list.html', exercises=exercises, tags=exdb.sql.tags(g.db))
 
+
+def readUserTable():
+    users = OrderedDict()
+    with open(join(exdb.instancePath, 'users.txt'), "rt") as userFile:
+        for line in userFile:
+            user, hash = line.strip().split("|", 1)
+            users[user] = hash
+    return users
+
+def writeUserTable(table):
+    with open(join(exdb.instancePath, 'users.txt'), "wt") as userFile:
+        for user, hash in table.items():
+            userFile.write("{}|{}\n".format(user, hash))
+
+def passwordHash(password):
+    import hashlib
+    return hashlib.sha256(password).hexdigest()
+
+@app.route("/changePassword", methods=["POST"])
+@login_required
+def changePassword():
+    users = readUserTable()
+    old = request.form["oldpw"]
+    new = request.form["newpw"]
+    if passwordHash(old) != users[session["user"]]:
+        return jsonify(status="error", message="current password is wrong")
+    if len(new) <= 3:
+        return jsonify(status="error", message="new password is too short")
+    users[session["user"]] = passwordHash(new)
+    writeUserTable(users)
+    return jsonify(status="ok")
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
     if request.method == "POST":
-        users = {}
+        users = readUserTable()
         import hashlib
-        with open(join(exdb.instancePath, 'users.txt'), "rt") as userFile:
-            for line in userFile:
-                user, hash = line.strip().split("|", 1)
-                users[user] = hash
         user = request.form["username"]
         if user not in users:
             error = "Invalid username"
-        elif hashlib.sha256(request.form["password"]).hexdigest() != users[user]:
+        elif passwordHash(request.form["password"]) != users[user]:
             error = "Invalid password"
         else:
             session['user'] = user
