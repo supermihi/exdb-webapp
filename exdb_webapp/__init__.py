@@ -161,7 +161,8 @@ def rpclatex():
         creator = request.form["creator"]
         number = request.form["number"]
         exercise = exdb.sql.exercise(creator=creator, number=number)
-        if tex == exercise["tex_{}".format(type)][lang]:
+        dct = exercise["tex_{}".format(type)]
+        if lang in dct and tex == exercise["tex_{}".format(type)]:
             return jsonify(status="ok", imgsrc=url_for("preview", creator=creator, number=number, type=type, lang=lang))
     preambles = json.loads(request.form['preambles'])
     try:
