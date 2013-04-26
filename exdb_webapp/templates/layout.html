@@ -21,6 +21,7 @@
 <div class="page">
   {% if session.get("user") %}
     <div class="toolbar ui-widget-content">
+        <span class="currentuser">logged in as {{ session.get("user") }}</span>
         {% for link in ["list", "add", "history", "settings", "logout"] %}
           <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
         {% endfor %}
