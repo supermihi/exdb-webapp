@@ -209,10 +209,10 @@ var submit = function() {
         data: { data : JSON.stringify(data) },
         dataType : 'json',
         success : function(resp) {
-            window.location = listUrl;
+            window.location.replace(listUrl);
         },
         error : function(req, status, err) {
-            console.log("nope submit bad");
+            alert("error submitting");
         },
         async : false
     }).always(function() {$("#wait_submit").dialog("close");});
