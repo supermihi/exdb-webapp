@@ -1,6 +1,3 @@
-{% for tag in tags %}
-    <input type="checkbox" id="tagbutton{{tag}}" tag="{{tag}}" class="filterbutton"/><label class="filtertext" for="tagbutton{{tag}}">{{tag}}</label>
-{% endfor %}
 {% for lang in "DE", "EN" %}
     <input type="checkbox" lang="{{lang}}" class="filterbutton" id="langfilterbutton{{lang}}"/><label class="filtertext" for="langfilterbutton{{lang}}">{{lang}}</label>
 {% endfor %}

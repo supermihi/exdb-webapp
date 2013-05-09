@@ -2,6 +2,7 @@
 
 {% block head %}
 <script src="{{url_for('static', filename='js/exdb.js')}}"></script>
+<script src="{{url_for('static', filename='js/jquery.jstree.js')}}"></script>
 <script>
     tagfiltersUrl='{{url_for("tagfilters")}}';
     searchUrl='{{url_for("search")}}';
@@ -9,16 +10,28 @@
         // image tooltips for exercise and solution flags
         enableImgTooltips();
         // initialize the tag filters list
-        updateTagFilters();
         searchExercises();
         $("#clearfilters").click( clearFilters );
+        $("#tagtree").jstree({ "plugins" : ["themes", "html_data"]});
     });
 </script>
 {% endblock %}
 
 {% block body %}
 <!-- A checkable button for each available tag to filter exercises -->
+<div id="tagtree">
+    <ul>
+    <li>
+        <a href="test">Node title</a>
+        <ul>
+        <li><a href="#">Test</a></li>
+        <li>Bla</li>
+        </ul>
+    </li>
+    </ul>
+</div>
 <div id="filterdiv">
+    
     <div id="tagfilters"></div>
     <a id="clearfilters" href="#">clear filters</a>
 </div>

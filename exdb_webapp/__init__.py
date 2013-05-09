@@ -39,7 +39,7 @@ def login_required(f):
 @login_required
 def list():
     exercises = exdb.sql.exercises(connection=g.db)
-    return render_template('list.html', exercises=exercises, tags=exdb.sql.tags(g.db))
+    return render_template('list.html', exercises=exercises)
 
 
 def readUserTable():

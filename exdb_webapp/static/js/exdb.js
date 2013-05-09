@@ -38,24 +38,6 @@ function searchExercises() {
     );
 };
 
-function updateTagFilters() {
-    $.get(tagfiltersUrl, function(resp) {
-        $("#tagfilters").empty().append(resp);
-        $(".filterbutton").button().click(function(event) {
-            searchExercises();
-        });
-        $("#searchfield").keyup(function(event) {
-            var val = $(this).val();
-            setTimeout(function() {
-                if ($("#searchfield").val() == val) {
-                    console.log($("#searchfield").val());
-                    searchExercises();
-                }
-                }, 200);
-        });
-    });
-};
-
 function clearFilters() {
     $(".filterbutton").prop("checked", false).button("refresh");
     $("#searchfield").val("");
