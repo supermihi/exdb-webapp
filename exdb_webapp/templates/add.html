@@ -12,9 +12,24 @@
     {% else %}
         mode = "add";
     {% endif %}
-    availableTags = $.parseJSON('{{tags|safe}}');
+    $(function() {
+        makeTagTree()
+        .dynatree("option", "onClick", function(node, event) {
+            if (node.data.is_tag) {
+                var currentTags = tags("#tags");
+                console.log(currentTags);
+                var found = currentTags.indexOf(node.data.title);
+                if (found == -1)
+                    currentTags.push(node.data.title);
+                else
+                    currentTags.splice(found, 1);
+                $("#tags").val(currentTags.join(", "));
+            }
+        });
+    });
 </script>
 <script src="{{url_for('static', filename='js/add.js')}}"></script>
+
 {% if exercise %}
 <script>
     $(function() {
@@ -32,7 +47,9 @@
     });
 </script>
 {% endif %}
+
 {% endblock %}
+
 
 {% block body %}
 <h1>{% if exercise %}Modify exercise {{exercise.identifier()}}{% else %}New Exercise{% endif %}</h1>
@@ -42,7 +59,8 @@
     <input type="text" id="description" class="text ui-widget-content ui-corner-all"></input>
     <label for="tags">Tags <span class="comment">(please use english tag names for consistency)</span></label>
     <input id="tags" class="text ui-widget-content ui-corner-all" />
-    <label for="preamble">Preamble</label>
+    <div id="tagtree"></div>
+    <label for="preamble">Preamble <span class="comment">(special \usepackage, \newcommand, etc. for this exercise)</span></label>
     <ul id="preambles">
     </ul>
     <button id="addpreamble">add line</button>

@@ -1,44 +1,21 @@
 {% extends "layout.html" %}
 
-{% block head %}
-<script src="{{url_for('static', filename='js/exdb.js')}}"></script>
-<script src="{{url_for('static', filename='js/jquery.jstree.js')}}"></script>
-<script>
-    tagfiltersUrl='{{url_for("tagfilters")}}';
-    searchUrl='{{url_for("search")}}';
-    $( function() {
-        // image tooltips for exercise and solution flags
-        enableImgTooltips();
-        // initialize the tag filters list
-        searchExercises();
-        $("#clearfilters").click( clearFilters );
-        $("#tagtree").jstree({ "plugins" : ["themes", "html_data"]});
-    });
-</script>
-{% endblock %}
-
 {% block body %}
-<!-- A checkable button for each available tag to filter exercises -->
-<div id="tagtree">
-    <ul>
-    <li>
-        <a href="test">Node title</a>
-        <ul>
-        <li><a href="#">Test</a></li>
-        <li>Bla</li>
-        </ul>
-    </li>
-    </ul>
-</div>
+<!-- filters: tag tree, language filters, and description search box -->
 <div id="filterdiv">
-    
-    <div id="tagfilters"></div>
+    <div id="tagtree"></div>
+    {% for lang in "DE", "EN" %}
+    <input type="checkbox" lang="{{lang}}" class="filterbutton" id="langfilterbutton{{lang}}"/><label class="filtertext" for="langfilterbutton{{lang}}">{{lang}}</label>
+    {% endfor %}
+    <div id="descriptionsearch" class="ui-state-default ui-widget">
+        <label for="searchfield">Search in description:</label>
+        <input type="text" id="searchfield" size="50" class="text ui-widget-content ui-corner-all"></input>
+    </div>
     <a id="clearfilters" href="#">clear filters</a>
 </div>
 
-
 <!-- the list of exercises matching the filter (generated dynamically by ajax calls)-->
-<ul class="exerciselist">
+<ul id="exerciselist">
 </ul>
 
 <!-- confirm dialog for removing exercises; normally hidden -->
@@ -46,9 +23,24 @@
 <p id="remove_dialog_message"><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span></p>
 </div>
 
-
 <script>
     $( function() {
+        // image tooltips for exercise and solution flags
+        enableImgTooltips();
+        $("#clearfilters").click( clearFilters );
+        makeTagTree(false)
+        .dynatree("option", "checkbox", true)
+        .dynatree("option", "onSelect", searchExercises);
+        $(".filterbutton").button().click( searchExercises );
+        $("#searchfield").keyup(function(event) {
+            var val = $(this).val();
+            setTimeout(function() {
+                if ($("#searchfield").val() == val)
+                    searchExercises();
+                }, 200);
+        });
+        searchExercises();
+        // open confirm dialog if removelink is clicked
         $(document).on("click", ".removelink", function(event) {
             event.preventDefault();
             table = $(this).closest(".exercise_listentry");
@@ -60,10 +52,8 @@
             $("#confirm_remove").dialog("open");
         });
         $("#confirm_remove").dialog({
-            autoOpen:false,
-            resizable:false,
-            modal:true,
-            buttons:{
+            autoOpen:false, resizable:false, modal:true,
+            buttons: {
                 Ok: function() {
                     creator = $(this).data("creator");
                     number = $(this).data("number");
@@ -72,7 +62,8 @@
                         { creator: creator, number: number },
                         function(resp) {
                            $('.exercise_listentry[creator="' + creator + '"][number="' + number + '"]').remove();
-                           updateTagFilters();
+                           $("#tagtree").dynatree("getTree").reload();
+                           searchExercises();
                         }
                     );
                     $(this).dialog("close");
@@ -81,7 +72,7 @@
                     $(this).dialog("close");
                 }
             }
-        });            
+        });
     });        
 </script>
 {% endblock %}

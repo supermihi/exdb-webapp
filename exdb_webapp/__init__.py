@@ -13,88 +13,43 @@ import copy
 from functools import wraps
 from collections import OrderedDict
 
-from flask import Flask, jsonify, g, render_template, redirect, request, send_file, session, url_for
+from flask import Flask, jsonify, g, render_template, redirect, request, Response, send_file, session, url_for
 from werkzeug import secure_filename
 
 import exdb.tex, exdb.sql
 
 
 app = Flask(__name__)
-
+from exdb_webapp import security
+from exdb_webapp.security import login_required
+from exdb_webapp import tags
 
 def imagePath(filename):
     return url_for("static", filename="images/{}".format(filename))
 
 app.jinja_env.globals.update(imagePath=imagePath)
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get("user") is None:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
+
+@app.before_request
+def before_request():
+    """Connect to the SQLite database on every request."""
+    g.db = exdb.sql.connect()
+
+
+@app.teardown_request
+def teardown_request(exception):
+    """Close the SQLite connection after every request."""
+    if hasattr(g, 'db'):
+        g.db.close()
+
 
 @app.route("/")
 @login_required
 def list():
+    """The "list exercises" view (main page of the application)."""
     exercises = exdb.sql.exercises(connection=g.db)
     return render_template('list.html', exercises=exercises)
 
-
-def readUserTable():
-    users = OrderedDict()
-    with open(join(exdb.instancePath, 'users.txt'), "rt") as userFile:
-        for line in userFile:
-            user, hash = line.strip().split("|", 1)
-            users[user] = hash
-    return users
-
-def writeUserTable(table):
-    with open(join(exdb.instancePath, 'users.txt'), "wt") as userFile:
-        for user, hash in table.items():
-            userFile.write("{}|{}\n".format(user, hash))
-
-def passwordHash(password):
-    import hashlib
-    return hashlib.sha256(password).hexdigest()
-
-@app.route("/changePassword", methods=["POST"])
-@login_required
-def changePassword():
-    users = readUserTable()
-    old = request.form["oldpw"]
-    new = request.form["newpw"]
-    if passwordHash(old) != users[session["user"]]:
-        return jsonify(status="error", message="current password is wrong")
-    if len(new) <= 3:
-        return jsonify(status="error", message="new password is too short")
-    users[session["user"]] = passwordHash(new)
-    writeUserTable(users)
-    return jsonify(status="ok")
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    error = None
-    if request.method == "POST":
-        users = readUserTable()
-        import hashlib
-        user = request.form["username"]
-        if user not in users:
-            error = "Invalid username"
-        elif passwordHash(request.form["password"]) != users[user]:
-            error = "Invalid password"
-        else:
-            session['user'] = user
-            session['uid'] = uuid.uuid4()
-            return redirect(url_for("list"))
-    return render_template('login.html', error=error)
-
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
 
 @app.route('/add', methods=["POST", "GET"])
 @login_required
@@ -106,7 +61,8 @@ def add():
             setattr(exercise, key, data[key])
         exdb.addExercise(exercise, connection=g.db)
         return jsonify(status="ok")
-    return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"))
+    return render_template('add.html')
+
 
 @app.route('/edit/<creator>/<int:number>', methods=["POST", "GET"])
 @login_required
@@ -120,7 +76,8 @@ def edit(creator, number):
             setattr(copyExercise, key, data[key])
         exdb.updateExercise(copyExercise, old=exercise, connection=g.db, user=session['user'])
         return jsonify(status="ok")
-    return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db), ensure_ascii="False"), exercise=exercise)
+    return render_template('add.html', exercise=exercise)
+
 
 @app.route('/remove', methods=["POST"])
 @login_required
@@ -130,11 +87,13 @@ def remove():
     exdb.removeExercise(creator, number, user=session['user'])
     return jsonify(status="ok")
 
+
 @app.route('/details/<creator>/<int:number>')
 @login_required
 def details(creator, number):
     exercise = exdb.sql.exercise(creator, number, connection=g.db)
     return render_template("details.html", exercise=exercise)
+
 
 @app.route('/settings')
 @login_required
@@ -145,11 +104,13 @@ def settings():
     repoUrl = exdb.repo.remoteUrl()
     return render_template("settings.html", template=template, preamble=preamble, repoUrl=repoUrl)
 
+
 @app.route('/history')
 @login_required
 def history():
     data = exdb.repo.history()
     return render_template("history.html", entries=data)
+
 
 @app.route('/rpclatex', methods=["POST"])
 @login_required
@@ -176,24 +137,18 @@ def rpclatex():
     except exdb.tex.ConversionError as e:
         return jsonify(status="error", log=str(e))
 
-@app.route('/partial/tagfilters')
-@login_required
-def tagfilters():
-    tags = exdb.sql.tags(g.db)
-    return render_template("tagfilters.html", tags=tags)
 
 @app.route('/partial/search', methods=['POST'])
 @login_required
 def search():
     tags = json.loads(request.form['tags'])
+    cats = json.loads(request.form['categories'])
     langs = json.loads(request.form["langs"])
     description = request.form["description"]
-    exercises = exdb.sql.searchExercises(tags=tags, langs=langs, description=description, connection=g.db)
+    exercises = exdb.sql.searchExercises(tags=tags, cats=cats, langs=langs,
+                                         description=description, connection=g.db)
     return render_template("exercises.html", exercises=exercises)
 
-@app.before_request
-def before_request():
-    g.db = exdb.sql.connect()
 
 @app.route('/preview/<creator>/<int:number>/<type>/<lang>')
 @login_required
@@ -201,7 +156,3 @@ def preview(creator, number, type, lang):
     return send_file(join(exdb.repo.repoPath(), "exercises", "{}{}".format(creator, number),
                    "{}_{}.png".format(type, lang)))
 
-@app.teardown_request
-def teardown_request(exception):
-    if hasattr(g, 'db'):
-        g.db.close()

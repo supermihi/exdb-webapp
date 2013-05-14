@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<div id="tagtree"></div>
+<div id="tagtreecontrols">
+    <button id="addcategory">new category</button>
+    <button id="removecategory">remove category</button>
+    <button id="renametag">rename</button>
+    <span id="tagtreeokcancel">
+        <button id="savetagtree">Save Changes</button>
+        <button id="canceltagtree">Reset</button>
+    </span>
+</div>
+
+<!-- dialog for adding category; normally hidden -->
+<div id="newcat_name" title="Add category">
+    <label for="newcat_name_input">Name of new category:</label><input id="newcat_name_input"/>
+</div>
+<!-- dialog for renaming category or tag; normally hidden -->
+<div id="renametag_newname" title="Rename">
+    <label for="newname_input">Rename to:</label><input id="newname_input"/>
+</div>
+
+<script>
+    makeTagTree(true)
+    .dynatree("option", "onActivate", function(node) {
+    	updateTagTreeControls(node);
+    });
+    initTagTreeControls();
+    $("#newcat_name").dialog({
+        autoOpen: false, modal:true, resizable: false,
+        buttons: {
+            Ok: function() {
+                $("#tagtree").dynatree("getRoot").addChild({
+                    title: $("#newcat_name_input").val(),
+                    isFolder: true,
+                    is_tag: false
+                });
+                $(this).dialog("close");
+            },
+            Cancel: function() {
+                $(this).dialog("close");
+            }
+        },
+        close: function() { $("#newcat_name_input").val(""); },
+    });
+    $("#renametag_newname").dialog({
+        autoOpen: false, modal: true, resizable: false,
+        buttons: {
+            Ok: function() {
+            	var val = $("#newname_input").val();
+            	var ok = true;
+            	$("#tagtree").dynatree("getRoot").visit(function(node) {
+            		if (node.data.is_tag && node.data.title === val) {
+            			alert("A tag with that name already exists");
+            			ok = false;
+            			return false;
+            		}
+            	}, false)
+            	if (!ok)
+            		return false;
+                $("#tagtree").dynatree("getActiveNode").setTitle(val);
+                $(this).dialog("close");
+            },
+            Cancel: function() {
+                $(this).dialog("close");
+            }
+        },
+    });
+</script>
+
+{% endblock %}

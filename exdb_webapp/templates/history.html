@@ -4,7 +4,12 @@
 <h1>Recent changes</h1>
 <ul>
     {% for entry in entries %}
-    <li>On {{entry["date"]}} by {{entry["author"]}}: {% if entry["action"] %}{{entry["action"]}} <a href="{{url_for('details', creator=entry['creator'], number=entry['number'])}}">{{entry["creator"]}}{{entry["number"]}}{% else %}{{entry["description"]}}{% endif %}</a>
+    <li>On {{entry["date"]}} by {{entry["author"]}}:
+    {% if entry["action"] in ("ADD", "EDIT", "REMOVE") %}
+      {{entry["action"]}} <a href="{{url_for('details', creator=entry['creator'], number=entry['number'])}}">{{entry["creator"]}}{{entry["number"]}}</a>
+    {% elif entry["action"] == "TAGS" %}
+       changed tag structure
+    {% else %}{{entry["description"]}}{% endif %}
     </li>
     {% endfor %}
 </ul>

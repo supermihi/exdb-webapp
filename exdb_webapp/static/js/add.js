@@ -122,21 +122,6 @@ var addPreambleLine = function(text) {
         });
 };
 
-var preambles = function() {
-    vals = [];
-    $("#preambles input").each(function(index, elem) {
-        val = $(elem).val();
-        if ($.trim(val) != "")
-            vals.push($.trim(val));
-    });
-    return vals;
-};
-
-var tags = function() {
-    value = $("#tags").val().replace(/[\s,]+$/g, '');
-    return split(value);
-}
-
 var compileSnippet = function(button) {
     var textype = button.parent().attr("textype");
     var lang = button.parent().attr("lang");
@@ -202,7 +187,7 @@ var submit = function() {
     data["tex_solution"] = tex_solution;
     data["tex_preamble"] = preambles();
     data["description"] = $("#description").val();
-    data["tags"] = tags();
+    data["tags"] = tags("#tags");
     $.ajax({
         type : 'POST',
         url : window.location.pathname,
@@ -216,11 +201,4 @@ var submit = function() {
         },
         async : false
     }).always(function() {$("#wait_submit").dialog("close");});
-}
-
-split = function( val ) {
-    return val.split( /,\s*/ );
-}
-extractLast = function( term ) {
-    return split( term ).pop();
 }

@@ -4,16 +4,21 @@
 <head>
     <meta charset="utf-8" />
     <title>Exercise Database</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom-theme/jquery-ui-1.10.2.custom.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='js/jquery-1.9.1.js')}}"></script>
-    <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='js/jquery-ui-1.10.2.custom.js')}}"></script>
-    
+    {% for css in ("css/custom-theme/jquery-ui-1.10.2.custom.css"
+                  ,"dynatree-skin/ui.dynatree.css"
+                  ,"css/style.css") %}
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename=css)}}"/>
+    {% endfor %}
     <script>
         rpclatexUrl='{{url_for("rpclatex")}}';
         listUrl='{{url_for("list")}}';
+        searchUrl='{{url_for("search")}}';
+        tagTreeUrl='{{url_for("tagtree")}}';
+        tagUrl = '{{url_for("tags")}}';
     </script>
+    {% for js in ("js/jquery-1.9.1.js", "js/jquery-ui-1.10.2.custom.js", "js/jquery.dynatree-1.2.4.js", "js/exdb.js") %}
+        <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename=js)}}"></script>
+    {% endfor %}
     {% block head %}{% endblock %}
 </head>
 
@@ -22,7 +27,7 @@
   {% if session.get("user") %}
     <div class="toolbar ui-widget-content">
         <span class="currentuser">logged in as {{ session.get("user") }}</span>
-        {% for link in ["list", "add", "history", "settings", "logout"] %}
+        {% for link in ["list", "add", "tags", "history", "settings", "logout"] %}
           <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
         {% endfor %}
     </div>

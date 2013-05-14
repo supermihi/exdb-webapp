@@ -61,12 +61,11 @@ h3 {
     font-size: 13pt;
     color: #609090;
 }
-.taglist {
-    font-style: italic;
-    }
+
 .exercisetable th {
     text-align: left;
 }
+
 .filtertext {
     padding: 1px;
     font-size:80%;
@@ -84,8 +83,8 @@ h3 {
     margin: 2px
 }
 #exercisefields input.text { margin-bottom:12px; width:95%; padding: .4em; }
-.exerciselist {list-style-type: none; margin: 0; padding: 0}
-.exerciselist li { border: 1px solid gray; padding: 2px; margin-bottom: 6px;}
+#exerciselist {list-style-type: none; margin: 0; padding: 0}
+#exerciselist li { border: 1px solid gray; padding: 2px; margin-bottom: 6px;}
 .creator { float: right }
 .ui-tooltip {width: 600px; max-width: 600px; background-color: white}
 .tooltipimage {width: 600px }
@@ -102,4 +101,7 @@ h3 {
     width: 10em;
     display : block;
     float : left;
+}
+#tagtreeokcancel {
+	float: right;
 }
