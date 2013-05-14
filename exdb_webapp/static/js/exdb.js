@@ -29,7 +29,7 @@ function searchExercises() {
         if (value.data.is_tag)
             tags.push(value.data.title);
         else
-            categories.push( [value.data.key, value.data.mat_path] );
+            categories.push( [value.data.id, value.data.mat_path] );
         });
     $(".filterbutton[lang]:checked").each( function(index, elem) {
         langs.push($(elem).attr("lang"));
