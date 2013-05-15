@@ -7,7 +7,7 @@ leaving this page!</p>
 <div id="tagtree"></div>
 <div id="tagtreecontrols">
     <button id="addcategory">new category</button>
-    <button id="removecategory">remove category</button>
+    <button id="removetagorcat">remove</button>
     <button id="renametag">rename</button>
     <span id="tagtreeokcancel">
         <button id="savetagtree">Save Changes</button>
@@ -23,8 +23,13 @@ leaving this page!</p>
 <div id="renametag_newname" title="Rename">
     <label for="newname_input">Rename to:</label><input id="newname_input"/>
 </div>
+<!-- dialog for removing a tag; normally hidden -->
+<div class="hidden" id="removetag_dialog" title="Remove tag from all exercises?">
+<p>The tag will be removed from all exercises in which it occurs. Are you sure?</p>
+</div>
 
 <script>
+$(function() {
     makeTagTree(true)
     .dynatree("option", "onActivate", function(node) {
     	updateTagTreeControls(node);
@@ -70,6 +75,19 @@ leaving this page!</p>
             }
         },
     });
+    $( "#removetag_dialog" ).dialog({
+    	resizable: false, modal: true, autoOpen: false,
+    	buttons: {
+    	    "Delete tag": function() {
+    	    	$("#tagtree").dynatree("getActiveNode").remove();
+    		    $( this ).dialog( "close" );
+    	    },
+    	    Cancel: function() {
+    	        $( this ).dialog( "close" );
+    	    }
+    	}
+    });
+});
 </script>
 
 {% endblock %}

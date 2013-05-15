@@ -161,3 +161,7 @@ a:hover {
 #tagtreeokcancel {
 	float: right;
 }
+.hidden {
+	display: none;
+}
+}

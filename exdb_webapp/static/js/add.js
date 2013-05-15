@@ -103,10 +103,6 @@ $(function() {
                 });
             });
         });
-    $("#wait_submit").dialog({
-        autoOpen:false,
-        modal:true
-        });
 });
 
 var addPreambleLine = function(text) {

@@ -127,9 +127,13 @@ function initTagTreeControls() {
     $("#addcategory").button().click(function(event) {
         $("#newcat_name").dialog("open");
     });
-    $("#removecategory").button({disabled: true}).click(function(event) {
+    $("#removetagorcat").button().click(function(event) {
         node = $("#tagtree").dynatree("getActiveNode");
-        if (node && !node.data.is_tag && !node.data.locked) {
+        if (!node || node.data.locked)
+        	return false;
+        if (node.data.is_tag) {
+        	$("#removetag_dialog").dialog("open");
+        } else {
             var lockedNode;
             $.each($("#tagtree").dynatree("getRoot").getChildren(), function(index, node) {
                 if (node.data.locked) {
@@ -157,11 +161,13 @@ function initTagTreeControls() {
     });
     $("#savetagtree").button({icons: {primary: "ui-icon-check"}}).click(function(event) {
     	jsonString = JSON.stringify($("#tagtree").dynatree("getRoot").toDict(true).children);
+    	$("#wait_submit").dialog("open");
     	$.post(tagUrl, { tree : jsonString },
-    		   function(resp) {
-    			   if (resp["status"] === "unchanged")
-    				   alert("nothing changed");
-    		       $("#tagtree").dynatree("getTree").reload();
+            function(resp) {
+    		    $("#wait_submit").dialog("close");
+    			if (resp["status"] === "unchanged")
+    			    alert("nothing changed");
+    		    $("#tagtree").dynatree("getTree").reload();
     		   });
     });
     $("#canceltagtree").button({icons: {primary: "ui-icon-close"}}).click(function(event) {
@@ -172,7 +178,7 @@ function initTagTreeControls() {
 /** Update tag tree controls when node is activated, i.e., (de)activate appropriate buttons.
  */
 function updateTagTreeControls(node) {
-	$("#removecategory").button("option", "disabled", node.data.is_tag || node.data.locked === true);
+	$("#removetagorcat").button("option", "disabled", node.data.locked === true);
 	$("#renametag").button("option", "disabled", node.data.locked === true);
 }
 
@@ -214,3 +220,10 @@ function preambles() {
     });
     return vals;
 };
+
+$(function() {
+	$("#wait_submit").dialog({
+        autoOpen:false,
+        modal:true
+    });
+});
