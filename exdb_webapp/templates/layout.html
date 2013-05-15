@@ -23,17 +23,28 @@
 </head>
 
 <body>
-<div class="page">
-  {% if session.get("user") %}
-    <div class="toolbar ui-widget-content">
-        <span class="currentuser">logged in as {{ session.get("user") }}</span>
-        {% for link in ["list", "add", "tags", "history", "settings", "logout"] %}
-          <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
-        {% endfor %}
+<div id="wrapper">
+    <div id="sidebar">
+        <br/>
+      {%block sidebar %}{% endblock %}
     </div>
-  {% endif %}
-  {% block body %}{% endblock %}
+	<div id="maincontent">
+	  {% if session.get("user") %}
+	    <div id="navbar" class="mainbox">
+	        <span class="currentuser">logged in as {{ session.get("user") }}</span>
+	        {% for link in ["list", "add", "tags", "history", "settings", "logout"] %}
+	          <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
+	        {% endfor %}
+	    </div>
+	  {% endif %}
+	  {% block body %}{% endblock %}
+	  <div id="bottom" class="mainbox">
+	   <a href="http://github.com/supermihi/exdb" target="_blank">exdb</a> 
+	   with 
+	   <a href="http://github.com/supermihi/exdb-webapp" target="_blank">exdb-webapp</a>
+	   &copy; 2013 by Michael Helmling
+	  </div>
+	</div>
 </div>
-  
 </body>
 </html>

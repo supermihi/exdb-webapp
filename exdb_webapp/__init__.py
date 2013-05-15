@@ -145,9 +145,13 @@ def search():
     cats = json.loads(request.form['categories'])
     langs = json.loads(request.form["langs"])
     description = request.form["description"]
+    sortColumn = request.form["sortcolumn"]
+    sortDirection = request.form["sortdirection"]
     exercises = exdb.sql.searchExercises(tags=tags, cats=cats, langs=langs,
-                                         description=description, connection=g.db)
-    return render_template("exercises.html", exercises=exercises)
+                                         description=description, sortColumn=sortColumn,
+                                         sortDirection=sortDirection, connection=g.db)
+    return jsonify(exercises=render_template("exercises.html", exercises=exercises),
+                   number=len(exercises))
 
 
 @app.route('/preview/<creator>/<int:number>/<type>/<lang>')

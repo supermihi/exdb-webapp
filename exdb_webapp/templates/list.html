@@ -1,19 +1,30 @@
 {% extends "layout.html" %}
 
-{% block body %}
+
+{% block sidebar %}
 <!-- filters: tag tree, language filters, and description search box -->
-<div id="filterdiv">
+<aside id="filterdiv">
+    <p>Filter exercises:</p>
     <div id="tagtree"></div>
     {% for lang in "DE", "EN" %}
     <input type="checkbox" lang="{{lang}}" class="filterbutton" id="langfilterbutton{{lang}}"/><label class="filtertext" for="langfilterbutton{{lang}}">{{lang}}</label>
     {% endfor %}
-    <div id="descriptionsearch" class="ui-state-default ui-widget">
-        <label for="searchfield">Search in description:</label>
-        <input type="text" id="searchfield" size="50" class="text ui-widget-content ui-corner-all"></input>
+    <div id="descriptionsearch">
+        <label for="searchfield">Search in description:</label><br/>
+        <input type="text" id="searchfield" style="width: 95%" "class="text ui-widget-content ui-corner-all"></input>
     </div>
-    <a id="clearfilters" href="#">clear filters</a>
-</div>
+    <a id="clearfilters" href="#">clear filters</a><br/>
+    <p class="comment"><span id="exercisenumber"></span> matching exercises. Sort by:</p>
+	<div id="sortbuttons">
+	    <input type="radio" id="sortdate" name="sort" column="modified" checked="checked" naturalsort="desc"/><label for="sortdate">date</label>
+	    <input type="radio" id="sortdesc" name="sort" column="description" naturalsort="asc"/><label for="sortdesc">description</label>
+	    <input type="radio" id="sortcrea" name="sort" column="creator,number" naturalsort="asc"/><label for="sortcrea">creator</label>
+    </div>
+</aside>
+{% endblock %}
 
+{% block body %}
+<h1>List of Exercises</h1>
 <!-- the list of exercises matching the filter (generated dynamically by ajax calls)-->
 <ul id="exerciselist">
 </ul>
@@ -39,7 +50,6 @@
                     searchExercises();
                 }, 200);
         });
-        searchExercises();
         // open confirm dialog if removelink is clicked
         $(document).on("click", ".removelink", function(event) {
             event.preventDefault();
@@ -73,6 +83,26 @@
                 }
             }
         });
-    });        
+        $("#sortbuttons").buttonset();
+        setSorting($("#sortdate"), "desc");
+        $("#sortbuttons>input").click(function(event) {
+        	switch ($(this).data("sort")) {
+	            case "asc":
+	                setSorting($(this), "desc");
+	                break;
+	            case "desc":
+	                setSorting($(this), "asc");
+	                break;
+	            default:
+	                setSorting($(this), $(this).attr("naturalsort"));
+        	}
+        	$(this).siblings("input").each(function(i, elem) {
+        		setSorting($(elem), null);
+        	});
+        	searchExercises();
+        });
+        console.log("now searching");
+        searchExercises();
+    });   
 </script>
 {% endblock %}

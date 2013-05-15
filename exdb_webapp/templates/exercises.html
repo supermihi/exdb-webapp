@@ -1,6 +1,5 @@
-<p class="comment">{{exercises|length}} exercise{{"s" if exercises|length != 1 else ""}} match{{"es" if exercises|length==1 else ""}} filter</p>
 {% for exercise in exercises %}
-    <li number="{{exercise.number}}" creator="{{exercise.creator}}" class="exercise_listentry  ui-widget-content">
+    <li number="{{exercise.number}}" creator="{{exercise.creator}}" class="exercise_listentry">
         <table class="exercisetable"><thead><tr><th>{{exercise.description}}</th></tr></thead>
         <tbody>
             <tr><td class="taglist">{{", ".join(exercise.tags)}}</td></tr>

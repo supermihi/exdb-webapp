@@ -9,7 +9,7 @@
 from setuptools import setup, find_packages
 
 setup(name='exdb-webapp',
-      version='0.1-git',
+      version='0.1',
       description='A flask-driven web application to manage an exdb exercise database',
       author='Michael Helmling',
       author_email='michaelhelmling@posteo.de',

@@ -22,9 +22,9 @@ enableImgTooltips = function() {
  *  Resulting exercises are placed in the #exerciselist element.
  */
 function searchExercises() {
-    langs = []
-    tags = []
-    categories = []
+    var langs = []
+    var tags = []
+    var categories = []
     $.each($("#tagtree").dynatree("getTree").getSelectedNodes(true), function(i, value) {
         if (value.data.is_tag)
             tags.push(value.data.title);
@@ -34,20 +34,37 @@ function searchExercises() {
     $(".filterbutton[lang]:checked").each( function(index, elem) {
         langs.push($(elem).attr("lang"));
     });
-    description = $("#searchfield").val() || "";
+    var description = $("#searchfield").val() || "";
+    var sortElem = $("#sortbuttons>input:checked");
     $.post(searchUrl,
            {
                tags: JSON.stringify(tags),
                categories: JSON.stringify(categories),
                langs: JSON.stringify(langs),
-               description : description
+               description : description,
+               sortcolumn : sortElem.attr("column"),
+               sortdirection : sortElem.data("sort") || "desc"
            },
            function(resp) {
-                $("#exerciselist").empty().append(resp);
+                $("#exerciselist").empty().append(resp["exercises"]);
+                $("#exercisenumber").text(resp["number"]);
            }
     );
 };
 
+function setSorting(elem, direction) {
+	switch(direction) {
+		case "asc":
+			elem.button("option", "icons", {secondary: "ui-icon-triangle-1-n"});
+			break;
+		case "desc":
+			elem.button("option", "icons", {secondary: "ui-icon-triangle-1-s"});
+			break;
+		default:
+			elem.button("option", "icons", {secondary: null});
+	}
+	elem.data("sort", direction);
+}
 
 /** Uncheck all .filterbutton elements, clear #searchfield, and uncheck everything
  *  in #tagtree. Then call searchEexercises() again.

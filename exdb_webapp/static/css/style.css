@@ -1,53 +1,26 @@
+/* general page setup */
 body {
     font-family: "Helvetica";
     font-size: 10pt;
     background-color: #EEFFFF;
 }
-.page {
+#wrapper {
+	width: 1000px;
+	margin: 10px auto;
+}
+#maincontent {
     width: 700px;
-    margin: 0 auto;
+    float: left;
     padding: 0.5em;
     border: 2px solid gray;
     background-color: #FBFBFB;
     margin-bottom: 400px;
 }
-.toolbar {
-    text-align: right;
-    background-color: #EEFFFF;
-    border: 1px solid silver;
-    border-radius: 5px;
-    padding-right: 5px;
-    padding: 3px;
-    margin-bottom: 20px;
-}
-.currentuser {
-    float: left;
-}
-.navlink {
-    padding: 1px;
-}
-.errorlog {
-	max-height:200px;
-    max-width: 630px;
-    overflow:auto;
-}
-.textabs {
-    min-height: 230px;
-}
-
-.texpreview {
-    display:block;
-    max-width: 630px;
-}
-.errormsg {
-    color:red;
-    font-style:bold;
-}
-#filterdiv {
-    padding: 5px;
-    border: 1px solid silver;
-    border-radius: 5px;
-    margin-bottom: 10px;
+#sidebar {
+	float: left;
+	/*border: 1px solid red;*/
+	margin-right: 10px;
+	width: 250px;
 }
 h1 {
     font-size: 16pt;
@@ -61,15 +34,81 @@ h3 {
     font-size: 13pt;
     color: #609090;
 }
+.mainbox {
+	text-align: right;
+	background-color: #EEFFFF;
+    border: 1px solid silver;
+    border-radius: 5px;
+    padding-right: 5px;
+    padding: 3px;
+}
+.mainbox a {
+	padding: 1px;
+}
+a {
+	color: #67767F;
+	font-weight: bold;
+	text-decoration: none;
+}
+a:hover {
+	color: #EEEEEE;
+	background-color: #67767F;
+}
+/* ----- */
 
+/* top and bottom bar */
+#navbar {
+    margin-bottom: 20px;
+}
+.currentuser {
+    float: left;
+}
+#bottom {
+	margin-top: 20px;
+}
+/* ------- */
+
+
+/* list page */
+#filterdiv {
+	position: fixed;
+	top: 10px;
+    border: 2px solid gray;
+    padding: 2px;
+}
 .exercisetable th {
     text-align: left;
 }
+#exerciselist {
+    list-style-type: none;
+    margin: 0;
+    padding: 0
+}
+#exerciselist li {
+    border: 1px solid gray;
+    padding: 2px;
+    margin-bottom: 6px;
+}
+/* -------- */
 
-.filtertext {
-    padding: 1px;
-    font-size:80%;
-    margin-bottom:2px
+
+
+/* add & edit page */
+.errorlog {
+	max-height:200px;
+    max-width: 630px;
+    overflow:auto;
+}
+.textabs {
+    min-height: 230px;
+}
+.texpreview {
+    display:block;
+    max-width: 630px;
+}
+.errormsg {
+    color:red;
+    font-style:bold;
 }
 #preambles {
     list-style-type: none;
@@ -82,12 +121,28 @@ h3 {
     padding: .4em;
     margin: 2px
 }
-#exercisefields input.text { margin-bottom:12px; width:95%; padding: .4em; }
-#exerciselist {list-style-type: none; margin: 0; padding: 0}
-#exerciselist li { border: 1px solid gray; padding: 2px; margin-bottom: 6px;}
+#exercisefields input.text {
+	margin-bottom: 12px;
+	width: 95%;
+	padding: .4em;
+}
+/* ----------- */
+
+
+
+
 .creator { float: right }
-.ui-tooltip {width: 600px; max-width: 600px; background-color: white}
-.tooltipimage {width: 600px }
+.ui-tooltip {
+	width: 600px;
+	max-width: 600px;
+	background-color: white;
+}
+.tooltipimage {
+	width: 600px;
+}
+.ui-button-text {
+	font-size: 80%;
+}
 .exercise_toolbar a {margin-right:10px}
 .progress-label {
     float: left;
