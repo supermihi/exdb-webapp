@@ -65,7 +65,7 @@ function clearFilters() {
 /** Create a dynatree on the #tagtree element that loads its contents via AJAX from
  *  tagTreeUrl.
  */
-function makeTagTree(dnd=false) {
+function makeTagTree(dnd) {
     options = {
         initAjax: { url : tagTreeUrl },
         selectMode: 3,
