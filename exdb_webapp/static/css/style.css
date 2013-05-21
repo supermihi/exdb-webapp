@@ -77,6 +77,10 @@ a:hover {
     padding: 2px;
     width: 250px;
 }
+#tagtree {
+	max-height: 400px;
+	overflow: auto;
+}
 .exercisetable th {
     text-align: left;
 }

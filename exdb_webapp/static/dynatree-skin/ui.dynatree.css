@@ -8,7 +8,6 @@ ul.dynatree-container
 	white-space: nowrap;
 	padding: 3px;
 	margin: 0; /* issue 201 */
-	overflow: auto;
 	height: 100%; /* issue 263 */
 }
 
@@ -285,6 +284,7 @@ ul.dynatree-container a:hover
 
 span.dynatree-node a
 {
+	font-weight: normal;
 	font-size: 10pt; /* required for IE, quirks mode */
 	display: inline-block; /* Better alignment, when title contains <br> */
 /*	vertical-align: top;*/
@@ -313,7 +313,7 @@ span.dynatree-expanded a
 
 span.dynatree-selected a
 {
-	color: green;
+	/*color: green;*/
 	font-style: italic;
 }
 
