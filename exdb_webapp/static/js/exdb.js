@@ -65,6 +65,7 @@ function searchExercises(page) {
                 		but.data("page", i);
                 		$("#pagebuttons").append(but);
                 	}
+                	$("#pagebuttons").append(" ");
                 }
            }
     );

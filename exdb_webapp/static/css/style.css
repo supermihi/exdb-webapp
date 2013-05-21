@@ -91,6 +91,7 @@ a:hover {
     margin-bottom: 6px;
 }
 .pagebutton {
+	font-weight: bold;
 	padding: 2px;
 }
 /* -------- */
