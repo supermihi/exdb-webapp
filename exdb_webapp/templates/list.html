@@ -18,8 +18,9 @@
 	<div id="sortbuttons">
 	    <input type="radio" id="sortdate" name="sort" column="modified" checked="checked" naturalsort="desc"/><label for="sortdate">date</label>
 	    <input type="radio" id="sortdesc" name="sort" column="description" naturalsort="asc"/><label for="sortdesc">description</label>
-	    <input type="radio" id="sortcrea" name="sort" column="creator,number" naturalsort="asc"/><label for="sortcrea">creator</label>
+	    <input type="radio" id="sortcrea" name="sort" column="creator||number" naturalsort="asc"/><label for="sortcrea">creator</label>
     </div>
+    <div id="pagebuttons"></div>
 </aside>
 {% endblock %}
 
@@ -41,25 +42,33 @@
         $("#clearfilters").click( clearFilters );
         makeTagTree(false)
         .dynatree("option", "checkbox", true)
-        .dynatree("option", "onSelect", searchExercises);
-        $(".filterbutton").button().click( searchExercises );
+        .dynatree("option", "onSelect", function(event) {
+        	searchExercises(0);
+        });
+        $(".filterbutton").button().click( function(event) {
+        	searchExercises(0);
+        });
         $("#searchfield").keyup(function(event) {
             var val = $(this).val();
             setTimeout(function() {
                 if ($("#searchfield").val() == val)
-                    searchExercises();
+                    searchExercises(0);
                 }, 200);
         });
         // open confirm dialog if removelink is clicked
         $(document).on("click", ".removelink", function(event) {
             event.preventDefault();
-            table = $(this).closest(".exercise_listentry");
-            creator = table.attr("creator");
-            number = table.attr("number");
+            var table = $(this).closest(".exercise_listentry");
+            var creator = table.attr("creator");
+            var number = table.attr("number");
             $("#remove_dialog_message").text("Are you sure to remove exercise '" + creator + number + "'?");
             $("#confirm_remove").data("creator", creator);
             $("#confirm_remove").data("number", number);
             $("#confirm_remove").dialog("open");
+        });
+        $(document).on("click", "a.pagebutton", function(event) {
+        	event.preventDefault();
+        	searchExercises($(this).data("page"));
         });
         $("#confirm_remove").dialog({
             autoOpen:false, resizable:false, modal:true,

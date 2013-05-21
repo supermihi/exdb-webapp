@@ -16,4 +16,4 @@ app.debug = True
 app.config['SECRET_KEY'] = 'udtiarenudiatrenuditronieadtorn'
 exdb.init(os.path.abspath(sys.argv[1]))
 logging.basicConfig(level=logging.DEBUG)
-app.run(host="0.0.0.0",port=6000)
+app.run(host="0.0.0.0",port=8888)

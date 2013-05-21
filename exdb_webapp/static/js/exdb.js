@@ -21,7 +21,7 @@ enableImgTooltips = function() {
  * 
  *  Resulting exercises are placed in the #exerciselist element.
  */
-function searchExercises() {
+function searchExercises(page) {
     var langs = []
     var tags = []
     var categories = []
@@ -36,18 +36,36 @@ function searchExercises() {
     });
     var description = $("#searchfield").val() || "";
     var sortElem = $("#sortbuttons>input:checked");
+    var pagination = { orderby: sortElem.attr("column"), limit: 10}
+    if (sortElem.data("sort") == "desc")
+    	pagination["descending"] = true;
+    if (!page)
+    	page = 0;
+    pagination["offset"] = 10*page;
+    	
     $.post(searchUrl,
            {
                tags: JSON.stringify(tags),
                categories: JSON.stringify(categories),
                langs: JSON.stringify(langs),
                description : description,
-               sortcolumn : sortElem.attr("column"),
-               sortdirection : sortElem.data("sort") || "desc"
+               pagination: JSON.stringify(pagination),
            },
            function(resp) {
                 $("#exerciselist").empty().append(resp["exercises"]);
                 $("#exercisenumber").text(resp["number"]);
+                var numpages = Math.ceil(resp["number"]/10);
+                $("#pagebuttons").empty();
+                for(var i=0; i < numpages; ++i) {
+                	var rangeStr = (i*10+1) + "-" + (i*10+10);
+                	if (i == page)
+                		$("#pagebuttons").append("<span class='pagebutton'>" + rangeStr +"</i>");
+                	else {
+                		var but = $("<a class='pagebutton' href='#'>" + rangeStr + '</a>');
+                		but.data("page", i);
+                		$("#pagebuttons").append(but);
+                	}
+                }
            }
     );
 };
