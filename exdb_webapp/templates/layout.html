@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8" />
     <title>Exercise Database</title>
-    {% for css in ("css/custom-theme/jquery-ui-1.10.2.custom.css"
-                  ,"dynatree-skin/ui.dynatree.css"
+    {% for css in ("css/jquery-ui/jquery-ui-1.10.2.custom.css"
+                  ,"css/dynatree/ui.dynatree.css"
                   ,"css/style.css") %}
         <link rel="stylesheet" type="text/css" href="{{url_for('static', filename=css)}}"/>
     {% endfor %}
@@ -16,7 +16,7 @@
         tagTreeUrl='{{url_for("tagtree")}}';
         tagUrl = '{{url_for("tags")}}';
     </script>
-    {% for js in ("js/jquery-1.9.1.js", "js/jquery-ui-1.10.2.custom.js", "js/jquery.dynatree-1.2.4.js", "js/exdb.js") %}
+    {% for js in ("js/jquery-1.9.1.js", "js/jquery-ui-1.10.2.custom.js", "js/dynatree-1.2.4.js", "js/exdb.js") %}
         <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename=js)}}"></script>
     {% endfor %}
     {% block head %}{% endblock %}
@@ -29,14 +29,14 @@
       {%block sidebar %}{% endblock %}
     </div>
 	<div id="maincontent">
-	  {% if session.get("user") %}
-	    <div id="navbar" class="mainbox">
-	        <span class="currentuser">logged in as {{ session.get("user") }}</span>
-	        {% for link in ["list", "add", "tags", "history", "settings", "logout"] %}
-	          <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
-	        {% endfor %}
-	    </div>
-	  {% endif %}
+        {% if session.get("user") %}
+        <div id="navbar" class="mainbox">
+            <span class="currentuser">logged in as {{ session.get("user") }}</span>
+            {% for link in ["list", "add", "tags", "history", "settings", "logout"] %}
+              <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
 	  {% block body %}{% endblock %}
 	  <div id="bottom" class="mainbox">
 	   <a href="http://github.com/supermihi/exdb" target="_blank">exdb</a> {{session["exdbversion"]}} 
@@ -46,9 +46,10 @@
 	  </div>
 	</div>
 </div>
+
 <!-- waiting dialog for submissions; normally hidden -->
 <div id="wait_submit" title="Server processing request">
-<p>Please wait while the server processes your request</p>
+    <p>Please wait while the server processes your request</p>
 </div>
 </body>
 </html>

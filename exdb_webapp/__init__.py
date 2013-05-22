@@ -6,7 +6,7 @@
 # published by the Free Software Foundation
 
 import subprocess, os, shutil
-from os.path import dirname, join, exists
+from os.path import dirname, join, exists, relpath
 import uuid
 import json
 import copy
@@ -130,10 +130,10 @@ def rpclatex():
     preambles = json.loads(request.form['preambles'])
     try:
         imgfile = exdb.tex.makePreview(tex, preambles=preambles, lang=lang)
-        filename = secure_filename("{}_{}_{}.png".format(session['uid'], lang, type))
-        staticPath = join(app.static_folder, filename)
-        shutil.copyfile(imgfile, staticPath)
-        return jsonify(status="ok", imgsrc=url_for("static", filename=filename))
+        hashPath = os.path.split(os.path.dirname(imgfile))[1]
+        print(hashPath)
+        print(url_for("tempPreview", path=hashPath))
+        return jsonify(status="ok", imgsrc=url_for("tempPreview", path=hashPath))
     except exdb.tex.CompilationError as e:
         return jsonify(status="error", log=e.log.decode('utf-8', 'ignore'))
     except exdb.tex.ConversionError as e:
@@ -161,3 +161,8 @@ def preview(creator, number, type, lang):
     return send_file(join(exdb.repo.repoPath(), "exercises", "{}{}".format(creator, number),
                    "{}_{}.png".format(type, lang)))
 
+
+@app.route('/temppreview/<path>')
+@login_required
+def tempPreview(path):
+    return send_file(join(exdb.instancePath, "previews", path, "preview.png"))

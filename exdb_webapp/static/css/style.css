@@ -138,8 +138,6 @@ a:hover {
 /* ----------- */
 
 
-
-
 .creator { float: right }
 .ui-tooltip {
 	width: 600px;
@@ -152,7 +150,9 @@ a:hover {
 .ui-button-text {
 	font-size: 80%;
 }
-.exercise_toolbar a {margin-right:10px}
+.exercise_toolbar a {
+	margin-right:10px
+}
 .progress-label {
     float: left;
     margin-left: 25%;
@@ -171,5 +171,4 @@ a:hover {
 }
 .hidden {
 	display: none;
-}
 }

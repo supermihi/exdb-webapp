@@ -22,7 +22,7 @@
             <a href="{{url_for('details', creator=exercise.creator, number=exercise.number)}}">details</a>
             <a href="{{url_for('edit', creator=exercise.creator, number=exercise.number)}}">edit</a>
             <a class="removelink" href="#">remove</a>
-            <span class="creator">entered by {{exercise.creator}} modified {{exercise.modified}}</span>
+            <span class="creator comment">entered by {{exercise.creator}} modified {{exercise.modified}}</span>
         </div>
     </li>
 {% endfor %}

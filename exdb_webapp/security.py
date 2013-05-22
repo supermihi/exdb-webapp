@@ -12,7 +12,6 @@ from collections import OrderedDict
 from functools import wraps
 import hashlib
 from os.path import join
-import uuid
 
 from flask import jsonify, redirect, render_template, request, session, url_for
 import exdb
@@ -93,7 +92,6 @@ def login():
             error = "Invalid password"
         else:
             session['user'] = user
-            session['uid'] = uuid.uuid4()
             return redirect(url_for("list"))
     return render_template('login.html', error=error)
 
