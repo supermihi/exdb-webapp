@@ -35,7 +35,7 @@ def before_request():
     g.db = exdb.sql.connect()
     if 'exdbversion' not in session:
         session['exdbversion'] = exdb.version()
-        session['webappversion'] = exdb.version(dirname(__file__))
+        session['webappversion'] = exdb.version("exdb-webapp", dirname(__file__))
 
 
 @app.teardown_request
