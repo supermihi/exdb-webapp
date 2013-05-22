@@ -39,9 +39,9 @@
 	  {% endif %}
 	  {% block body %}{% endblock %}
 	  <div id="bottom" class="mainbox">
-	   <a href="http://github.com/supermihi/exdb" target="_blank">exdb</a> 
+	   <a href="http://github.com/supermihi/exdb" target="_blank">exdb</a> {{session["exdbversion"]}} 
 	   with 
-	   <a href="http://github.com/supermihi/exdb-webapp" target="_blank">exdb-webapp</a>
+	   <a href="http://github.com/supermihi/exdb-webapp" target="_blank">exdb-webapp</a> {{session["webappversion"]}}
 	   &copy; 2013 by Michael Helmling
 	  </div>
 	</div>

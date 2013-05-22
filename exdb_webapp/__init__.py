@@ -6,7 +6,7 @@
 # published by the Free Software Foundation
 
 import subprocess, os, shutil
-from os.path import join, exists
+from os.path import dirname, join, exists
 import uuid
 import json
 import copy
@@ -17,7 +17,6 @@ from flask import Flask, jsonify, g, render_template, redirect, request, Respons
 from werkzeug import secure_filename
 
 import exdb.tex, exdb.sql
-
 
 app = Flask(__name__)
 from exdb_webapp import security
@@ -34,6 +33,9 @@ app.jinja_env.globals.update(imagePath=imagePath)
 def before_request():
     """Connect to the SQLite database on every request."""
     g.db = exdb.sql.connect()
+    if 'exdbversion' not in session:
+        session['exdbversion'] = exdb.version()
+        session['webappversion'] = exdb.version(dirname(__file__))
 
 
 @app.teardown_request
