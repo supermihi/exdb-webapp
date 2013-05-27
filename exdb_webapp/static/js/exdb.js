@@ -15,8 +15,9 @@ var pageSize = 10; // how many exercises to display per page
 
 /** Update the links to directly go to a specific page in the results list.
  * 
- *  Creates a link for each page; the current page will be a not-link. Click events
- *  are mapped to the search function.
+ *  Creates a link for each page (the current page will not be a link) in the #pagebuttons element.
+ *  Each link has class pagebutton. On click the links call searchExercises(page) where page is the
+ *  associated page number (starting with 0).
  */
 function updatePageButtons(currentPage, totalNumber) {
 	var numpages = Math.ceil(totalNumber/pageSize);
@@ -30,9 +31,9 @@ function updatePageButtons(currentPage, totalNumber) {
 			$("#pagebuttons").append("<span class='pagebutton'>" + rangeStr +"</i>");
 		else {
 			var but = $("<a class='pagebutton' href='#'>" + rangeStr + '</a>');
-			but.click( function(event) {
+			but.data("page", i).click( function(event) {
 				event.preventDefault();
-				searchExercises(i);
+				searchExercises($(this).data("page"));
 			});
 			$("#pagebuttons").append(but);
 		}
@@ -87,6 +88,12 @@ function searchExercises(page) {
     );
 };
 
+
+/** Update the sort button *elem* for the given sort direction.
+ * 
+ * *direction* should be either "asc", "desc", or Null. The method will update the button's icon
+ * (triangle up- or downwards, or no icon for Null) and set its "sort" data to the given value.
+ */
 function setSorting(elem, direction) {
 	switch(direction) {
 		case "asc":
@@ -100,6 +107,7 @@ function setSorting(elem, direction) {
 	}
 	elem.data("sort", direction);
 }
+
 
 /** Uncheck all .filterbutton elements, clear #searchfield, and uncheck everything
  *  in #tagtree. Then call searchEexercises() again.
@@ -116,6 +124,8 @@ function clearFilters() {
 
 /** Create a dynatree on the #tagtree element that loads its contents via AJAX from
  *  tagTreeUrl.
+ *  
+ *  If *dnd* is True then drag and drop will be enabled. 
  */
 function makeTagTree(dnd) {
     options = {
@@ -155,6 +165,7 @@ function makeTagTree(dnd) {
     }
     return $("#tagtree").dynatree(options);
 };
+
 
 /** Initialize buttons for constrolling the tag tree (add, remove, rename).
  */
@@ -210,12 +221,14 @@ function initTagTreeControls() {
     });
 }
 
+
 /** Update tag tree controls when node is activated, i.e., (de)activate appropriate buttons.
  */
 function updateTagTreeControls(node) {
 	$("#removetagorcat").button("option", "disabled", node.data.locked === true);
 	$("#renametag").button("option", "disabled", node.data.locked === true);
 }
+
 
 /** Read the value of the input specified by the given selector and split it into a
  *  list of tags (split by commas, remove whitespace).
@@ -256,6 +269,8 @@ function preambles() {
     return vals;
 };
 
+
+/* Create and hide the wait_submit dialog */ 
 $(function() {
 	$("#wait_submit").dialog({
         autoOpen:false,
