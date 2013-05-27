@@ -66,10 +66,6 @@
             $("#confirm_remove").data("number", number);
             $("#confirm_remove").dialog("open");
         });
-        $(document).on("click", "a.pagebutton", function(event) {
-        	event.preventDefault();
-        	searchExercises($(this).data("page"));
-        });
         $("#confirm_remove").dialog({
             autoOpen:false, resizable:false, modal:true,
             buttons: {
@@ -110,7 +106,6 @@
         	});
         	searchExercises();
         });
-        console.log("now searching");
         searchExercises();
     });   
 </script>

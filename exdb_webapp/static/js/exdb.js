@@ -1,7 +1,7 @@
 /** enables a jQuery UI tooltip for all elements having an "imgurl" attribute. The tooltip shows
  *  the appropriate image.
  */
-enableImgTooltips = function() {
+function enableImgTooltips() {
     $(document).tooltip({
         items: "[imgurl]",
         content: function() {
@@ -9,8 +9,36 @@ enableImgTooltips = function() {
             return '<img class="tooltipimage" src="' + element.attr("imgurl") + '"/>';
         }
     });
-};
+}
 
+var pageSize = 10; // how many exercises to display per page
+
+/** Update the links to directly go to a specific page in the results list.
+ * 
+ *  Creates a link for each page; the current page will be a not-link. Click events
+ *  are mapped to the search function.
+ */
+function updatePageButtons(currentPage, totalNumber) {
+	var numpages = Math.ceil(totalNumber/pageSize);
+	$("#pagebuttons").empty();
+	for(var i=0; i < numpages; ++i) {
+		if (i*pageSize+1 === totalNumber)
+			var rangeStr = i*pageSize+1;
+		else
+			var rangeStr = (i*pageSize+1) + "-" + Math.min(totalNumber, pageSize*(i+1));
+		if (i == currentPage)
+			$("#pagebuttons").append("<span class='pagebutton'>" + rangeStr +"</i>");
+		else {
+			var but = $("<a class='pagebutton' href='#'>" + rangeStr + '</a>');
+			but.click( function(event) {
+				event.preventDefault();
+				searchExercises(i);
+			});
+			$("#pagebuttons").append(but);
+		}
+		$("#pagebuttons").append(" ");
+	}
+}
 
 /** Perform an AJAX search of exercises for the given filters. Requires that an element
  *  #tagtree exists and is a dynatree instance; tag and category filters will be obtained
@@ -36,12 +64,12 @@ function searchExercises(page) {
     });
     var description = $("#searchfield").val() || "";
     var sortElem = $("#sortbuttons>input:checked");
-    var pagination = { orderby: sortElem.attr("column"), limit: 10}
+    var pagination = { orderby: sortElem.attr("column"), limit: pageSize}
     if (sortElem.data("sort") == "desc")
     	pagination["descending"] = true;
     if (!page)
     	page = 0;
-    pagination["offset"] = 10*page;
+    pagination["offset"] = pageSize*page;
     	
     $.post(searchUrl,
            {
@@ -54,19 +82,7 @@ function searchExercises(page) {
            function(resp) {
                 $("#exerciselist").empty().append(resp["exercises"]);
                 $("#exercisenumber").text(resp["number"]);
-                var numpages = Math.ceil(resp["number"]/10);
-                $("#pagebuttons").empty();
-                for(var i=0; i < numpages; ++i) {
-                	var rangeStr = (i*10+1) + "-" + (i*10+10);
-                	if (i == page)
-                		$("#pagebuttons").append("<span class='pagebutton'>" + rangeStr +"</i>");
-                	else {
-                		var but = $("<a class='pagebutton' href='#'>" + rangeStr + '</a>');
-                		but.data("page", i);
-                		$("#pagebuttons").append(but);
-                	}
-                	$("#pagebuttons").append(" ");
-                }
+                updatePageButtons(page, resp["number"]);
            }
     );
 };

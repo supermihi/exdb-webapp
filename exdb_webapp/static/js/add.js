@@ -4,10 +4,19 @@ $(function() {
     // turn the textareas into latex editors
     $( '.latexeditor' ).each(function(index, elem) {
         var editor = CodeMirror.fromTextArea($(elem)[0], {lineWrapping:true, lineNumbers:true});
-        parent = $(elem).parent();
+        var parent = $(elem).parent();
         editors[parent.attr("textype")+parent.attr("lang")] = editor;
+        
     });
-    
+    $('.CodeMirror').resizable({
+    	resize: function() {
+    		var parent = $(this).parent();
+    		var editor = editors[parent.attr("textype")+parent.attr("lang")];
+    	    editor.setSize($(this).width(), $(this).height());
+    	},
+    	minWidth: $(this).width(),
+    	maxWidth: $(this).width(),
+    });
     // hide inactive elements
     $(".texpreview").not("[src]").hide();
     $(".errorlog").hide();
