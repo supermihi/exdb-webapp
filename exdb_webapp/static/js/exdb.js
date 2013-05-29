@@ -86,7 +86,34 @@ function searchExercises(page) {
                 updatePageButtons(page, resp["number"]);
            }
     );
-};
+}
+
+
+/** Initializes the buttons for sorting exercise results by date, author, or description
+ *  
+ *  Makes #sortubttons a buttongroup, initializes the sorting by date / descending, and 
+ *  installs click event handlers.
+ */
+function initSortButtons() {
+	$("#sortbuttons").buttonset();
+	setSorting($("#sortdate"), "desc");
+	$("#sortbuttons>input").click(function(event) {
+		switch ($(this).data("sort")) {
+	        case "asc":
+	            setSorting($(this), "desc");
+	            break;
+	        case "desc":
+	            setSorting($(this), "asc");
+	            break;
+	        default:
+	            setSorting($(this), $(this).attr("naturalsort"));
+		}
+		$(this).siblings("input").each(function(i, elem) {
+			setSorting($(elem), null);
+		});
+		searchExercises();
+	});
+}
 
 
 /** Update the sort button *elem* for the given sort direction.
@@ -119,8 +146,28 @@ function clearFilters() {
         node.select(false);
     });
     searchExercises();
-};
+}
 
+/** Remove the specified exercise.
+ * 
+ * First displays a dialog; if that is accepted, the exercise is removed in a synchronous AJAX call.
+ */
+function removeExercise(creator, number) {
+	$("#dialog_message").text("Are you sure to remove exercise '" + creator + number + "'?");
+	$("#confirm_dialog").one("dialogOk", function(event) {
+		$(".exercise_listentry[creator='"+creator+"'][number='"+number+"']").remove();
+		$("#wait_submit").dialog("open");
+        $.post(
+            removeUrl,
+            { creator: creator, number: number },
+            function(resp) {
+               $("#tagtree").dynatree("getTree").reload(); // tags might have disappeared
+               searchExercises();
+            }
+        ).always(function() {$("#wait_submit").dialog("close")});
+	});
+	$("#confirm_dialog").dialog("open");
+}
 
 /** Create a dynatree on the #tagtree element that loads its contents via AJAX from
  *  tagTreeUrl.
@@ -164,7 +211,7 @@ function makeTagTree(dnd) {
         }
     }
     return $("#tagtree").dynatree(options);
-};
+}
 
 
 /** Initialize buttons for constrolling the tag tree (add, remove, rename).
@@ -267,7 +314,7 @@ function preambles() {
             vals.push($.trim(val));
     });
     return vals;
-};
+}
 
 
 /* Create and hide the wait_submit dialog */ 
@@ -276,4 +323,18 @@ $(function() {
         autoOpen:false,
         modal:true
     });
+	$("#confirm_dialog").dialog({
+        autoOpen:false,
+        modal:true,
+        buttons: {
+            Ok: function() {
+            	$(this).dialog("close");
+            	$(this).trigger("dialogOk");
+            },
+            Cancel: function() {
+            	$(this).dialog("close");
+            	$(this).trigger("dialogCancel");
+            }
+        }            
+	});
 });

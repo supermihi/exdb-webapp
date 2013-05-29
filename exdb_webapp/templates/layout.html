@@ -13,12 +13,16 @@
         rpclatexUrl='{{url_for("rpclatex")}}';
         listUrl='{{url_for("list")}}';
         searchUrl='{{url_for("search")}}';
+        removeUrl='{{url_for("remove")}}';
         tagTreeUrl='{{url_for("tagtree")}}';
         tagUrl = '{{url_for("tags")}}';
     </script>
-    {% for js in ("js/jquery-1.9.1.js", "js/jquery-ui-1.10.2.custom.js", "js/dynatree-1.2.4.js", "js/exdb.js") %}
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    {% for js in ("js/dynatree-1.2.4.js", "js/exdb.js") %}
         <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename=js)}}"></script>
     {% endfor %}
+    
     {% block head %}{% endblock %}
 </head>
 
@@ -50,6 +54,10 @@
 <!-- waiting dialog for submissions; normally hidden -->
 <div id="wait_submit" title="Server processing request">
     <p>Please wait while the server processes your request</p>
+</div>
+<!-- confirm dialog; normally hidden -->
+<div id="confirm_dialog" title="INSERT TITLE">
+    <p id="dialog_message"><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span></p>
 </div>
 </body>
 </html>

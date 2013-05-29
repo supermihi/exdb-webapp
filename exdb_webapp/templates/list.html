@@ -30,24 +30,19 @@
 <ul id="exerciselist">
 </ul>
 
-<!-- confirm dialog for removing exercises; normally hidden -->
-<div id="confirm_remove" title="Really delete exercise?">
-<p id="remove_dialog_message"><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span></p>
-</div>
-
 <script>
     $( function() {
         // image tooltips for exercise and solution flags
         enableImgTooltips();
+        // enable the button to clear search filters
         $("#clearfilters").click( clearFilters );
+        // create the tag tree (without dnd support) and associate selects with searchExercises
         makeTagTree(false)
         .dynatree("option", "checkbox", true)
-        .dynatree("option", "onSelect", function(event) {
-        	searchExercises(0);
-        });
-        $(".filterbutton").button().click( function(event) {
-        	searchExercises(0);
-        });
+        .dynatree("option", "onSelect", function() {searchExercises(0);});
+        // filterbuttons also trigger search
+        $(".filterbutton").button().click( function() {searchExercises(0); });
+        // ... so does a keyup event in the search field (after a small timeout)
         $("#searchfield").keyup(function(event) {
             var val = $(this).val();
             setTimeout(function() {
@@ -55,58 +50,14 @@
                     searchExercises(0);
                 }, 200);
         });
-        // open confirm dialog if removelink is clicked
+        // handle removelink clicks
         $(document).on("click", ".removelink", function(event) {
             event.preventDefault();
-            var table = $(this).closest(".exercise_listentry");
-            var creator = table.attr("creator");
-            var number = table.attr("number");
-            $("#remove_dialog_message").text("Are you sure to remove exercise '" + creator + number + "'?");
-            $("#confirm_remove").data("creator", creator);
-            $("#confirm_remove").data("number", number);
-            $("#confirm_remove").dialog("open");
+            removeExercise($(this).attr("creator"), $(this).attr("number"));
         });
-        $("#confirm_remove").dialog({
-            autoOpen:false, resizable:false, modal:true,
-            buttons: {
-                Ok: function() {
-                    creator = $(this).data("creator");
-                    number = $(this).data("number");
-                    $.post(
-                        '{{url_for("remove")}}',
-                        { creator: creator, number: number },
-                        function(resp) {
-                           $('.exercise_listentry[creator="' + creator + '"][number="' + number + '"]').remove();
-                           $("#tagtree").dynatree("getTree").reload();
-                           searchExercises();
-                        }
-                    );
-                    $(this).dialog("close");
-                },
-                Cancel: function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-        $("#sortbuttons").buttonset();
-        setSorting($("#sortdate"), "desc");
-        $("#sortbuttons>input").click(function(event) {
-        	switch ($(this).data("sort")) {
-	            case "asc":
-	                setSorting($(this), "desc");
-	                break;
-	            case "desc":
-	                setSorting($(this), "asc");
-	                break;
-	            default:
-	                setSorting($(this), $(this).attr("naturalsort"));
-        	}
-        	$(this).siblings("input").each(function(i, elem) {
-        		setSorting($(elem), null);
-        	});
-        	searchExercises();
-        });
-        searchExercises();
+        initSortButtons();
+        // initial search to fill the list
+        searchExercises(0);
     });   
 </script>
 {% endblock %}
