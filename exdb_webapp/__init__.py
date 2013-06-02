@@ -58,12 +58,8 @@ def list():
 def add():
     if request.method == "POST":
         data = json.loads(request.form["data"])
-        exercise = exdb.exercise.Exercise(creator=session['user'])
-        for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
-            setattr(exercise, key, data[key])
-        exdb.addExercise(exercise, connection=g.db)
-        return jsonify(status="ok")
-    return render_template('add.html')
+        return jsonify(**checkSubmittedExercise(data))
+    return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db)))
 
 
 @app.route('/edit/<creator>/<int:number>', methods=["POST", "GET"])
@@ -71,14 +67,14 @@ def add():
 def edit(creator, number):
     exercise = exdb.sql.exercise(creator, number)
     if request.method == "POST":
-        copyExercise = copy.copy(exercise)
         data = json.loads(request.form["data"])
-        data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
-        for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
-            setattr(copyExercise, key, data[key])
-        exdb.updateExercise(copyExercise, old=exercise, connection=g.db, user=session['user'])
-        return jsonify(status="ok")
-    return render_template('add.html', exercise=exercise)
+        return jsonify(**checkSubmittedExercise(data, exercise))
+    for typ in "exercise", "solution":
+        for lang in exercise["tex_" + typ]:
+            exercise["preview_" + typ + lang] = \
+                url_for("preview", creator=creator, number=number, type=typ, lang=lang)
+    js = exercise.toJSON().replace('\\', '\\\\').replace("'", "\\'")
+    return render_template('add.html', exercise=js, tags=json.dumps(exdb.sql.tags(g.db)))
 
 
 @app.route('/remove', methods=["POST"])
@@ -123,23 +119,61 @@ def rpclatex():
     if 'creator' in request.form:
         creator = request.form["creator"]
         number = request.form["number"]
-        exercise = exdb.sql.exercise(creator=creator, number=number)
-        dct = exercise["tex_{}".format(type)]
-        if lang in dct and tex == exercise["tex_{}".format(type)]:
-            return jsonify(status="ok", imgsrc=url_for("preview", creator=creator, number=number, type=type, lang=lang))
+    else:
+        creator = number = None
     preambles = json.loads(request.form['preambles'])
+    return jsonify(**compileSnippet(tex, preambles, type, lang, creator, number))
+
+
+def checkSubmittedExercise(data, old=None):
+    description = data["description"]
+    if len(description.strip()) == 0:
+        return dict(status="errormsg", log="Please enter a description!")
+    if len(data["tex_exercise"]) == 0:
+        return dict(status="errormsg", log="Please enter exercise code in at least one language!")
+    preambles = data["tex_preamble"]
+    data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
+    okays = []
+    for type in "exercise", "solution":
+        for lang, tex in data["tex_" + type].items():
+            ans = compileSnippet(tex, preambles, type, lang)
+            if ans["status"] == "ok":
+                okays.append(dict(type=type, lang=lang, imgsrc=ans["imgsrc"]))
+            else:
+                return dict(status="error", type=type, lang=lang, log=ans["log"], okays=okays)
+    if old:
+        exercise = copy.copy(old)
+    else:
+        exercise = exdb.exercise.Exercise(creator=session['user'])
+    for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
+        setattr(exercise, key, data[key])
+    if old:
+        exdb.updateExercise(exercise, old=old, connection=g.db, user=session['user'])
+    else:
+        exdb.addExercise(exercise, connection=g.db)
+    return dict(status="ok")
+
+
+def compileSnippet(tex, preambles, type, lang, creator=None, number=None):
+    if creator:
+        exercise = exdb.sql.exercise(creator=creator, number=number)
+        dct = exercise["tex_" + type]
+        if lang in dct and tex == exercise["tex_" + type]:
+            # no changes -> return preview URL
+            return dict(status="ok",
+                        imgsrc=url_for("preview",
+                                       creator=creator, number=number,
+                                       type=type, lang=lang)
+                        )
     try:
-        imgfile = exdb.tex.makePreview(tex, preambles=preambles, lang=lang)
-        hashPath = os.path.split(os.path.dirname(imgfile))[1]
-        print(hashPath)
-        print(url_for("tempPreview", path=hashPath))
-        return jsonify(status="ok", imgsrc=url_for("tempPreview", path=hashPath))
+        imgFile = exdb.tex.makePreview(tex, preambles=preambles, lang=lang)
+        hashPath = os.path.split(os.path.dirname(imgFile))[1]
+        return {"status": "ok", "imgsrc": url_for("tempPreview", path=hashPath)}
     except exdb.tex.CompilationError as e:
-        return jsonify(status="error", log=e.log.decode('utf-8', 'ignore'))
+        return {"status": "error", "log": e.log.decode('utf-8', 'ignore')}
     except exdb.tex.ConversionError as e:
-        return jsonify(status="error", log=str(e))
-
-
+        return {"status": "error", "log": str(e)}
+    
 @app.route('/partial/search', methods=['POST'])
 @login_required
 def search():

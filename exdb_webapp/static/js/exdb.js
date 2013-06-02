@@ -296,10 +296,90 @@ function split(val) {
 }
 
 
-/** Return the last element of the list as returned by *split*.
+/** Return the last element of *val* after being split.
  */ 
 function extractLast(val) {
     return split(val).pop();
+}
+
+
+/** 
+ * Update the input field "#tags" with the given *tag*.
+ * 
+ * If *tag* is contained in the comma-separated list of values in "#tags", it is
+ * removed, otherwise added at the end.
+ */
+function updateTagField(tag) {
+	var currentTags = tags("#tags");
+	var found = currentTags.indexOf(node.data.title);
+	if (found == -1)
+		currentTags.push(node.data.title);
+	else
+		currentTags.splice(found, 1);
+	$("#tags").val(currentTags.join(", "));
+}
+
+
+/** Installs autocompletion on the #tags input field.
+ * 
+ * Uses the global variable "availableTags" as information source.
+ */
+function installTagAutocompletion() {
+	// taken from jQueryUI examples
+    $("#tags").bind( "keydown", function( event ) {
+            if ( event.keyCode === $.ui.keyCode.TAB &&
+                $( this ).data( "ui-autocomplete" ).menu.active ) {
+                event.preventDefault();
+            }
+        }).autocomplete({
+            minLength: 0,
+            source: function( request, response ) {
+                response( $.ui.autocomplete.filter(
+                    availableTags, extractLast( request.term ) ) );
+            },
+            focus: function() {
+                return false;
+            },
+            select: function( event, ui ) {
+                var terms = split( this.value );
+                terms.pop();
+                terms.push( ui.item.value );
+                terms.push("")
+                this.value = terms.join( ", " );
+                return false;
+            }
+        });
+}
+
+
+/** Initializes CodeMirror editors on all ".latexeditor" textareas
+ * 
+ * Stores the CodeMirror object in the global "editors" variable, and
+ * and creates an appropriate resize function (vertical only).
+ * 
+ */
+function createLatexEditors() {
+	$( '.latexeditor' ).each(function(index, elem) {
+        var editor = CodeMirror.fromTextArea(
+        		$(elem)[0],
+        		{
+        			lineWrapping: true,
+        			lineNumbers:  true
+        		}
+        );
+        var parent = $(elem).parent();
+        editors[parent.attr("textype")+parent.attr("lang")] = editor;
+        
+    });
+    $('.CodeMirror').resizable({
+    	resize: function() {
+    		var parent = $(this).parent();
+    		var editor = editors[parent.attr("textype")+parent.attr("lang")];
+    	    editor.setSize($(this).width(), $(this).height());
+    	},
+    	minWidth: $(this).width(),
+    	maxWidth: $(this).width(),
+    });
 }
 
 
@@ -314,6 +394,51 @@ function preambles() {
             vals.push($.trim(val));
     });
     return vals;
+}
+
+
+/** Add a new line to the preambles list.
+ */
+function addPreambleLine(text) {
+    var li = $('<li>\
+    		<button class="preminus"></button>\
+    		<input type="text" class="ui-widget-content ui-corner-all"/>\
+    		</li>');
+    if (text)
+        li.children("input").val(text);
+    $("#preambles").append(li);
+    li.children(".preminus")
+        .button({icons: {primary: "ui-icon-minus"}, text: false})
+        .click( function(event) {
+            event.preventDefault();
+            $(this).parent().remove();
+        });
+}
+
+
+/** Inserts the values for the current exercise into the input fields of the "edit" page.
+ *
+ *  The values are taken from *exJson*, parsed JSON object returned by the view.
+ */
+function fillEditFields(exJson) {
+	$("#addeditheading").text("Modify exercise " + exJson.creator + exJson.number);
+	$("#description").val(exJson.description);
+	$("#tags").val(exJson.tags.join(", "));
+	$.each(exJson.tex_preamble, function(i, line) {
+		addPreambleLine(line);
+	});
+	if (!exJson.tex_exercise.DE)
+		$('.textabs[textype="exercise"]').tabs("option", "active", 1);
+	if (!exJson.tex_solution.DE && exJson.tex_solution.EN)
+		$('.textabs[textype="solution"]').tabs("option", "active", 1);
+	$(".textab").each(function(i, elem) {
+		var typ = $(elem).attr("textype");
+		var lang = $(elem).attr("lang");
+		if (exJson["tex_"+typ] && exJson["tex_"+typ][lang]) {
+			editors[typ+lang].setValue(exJson["tex_"+typ][lang]);
+			$(elem).find('.texpreview').attr("src", exJson["preview_"+typ+lang]);
+		}
+	});
 }
 
 

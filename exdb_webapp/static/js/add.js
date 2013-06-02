@@ -1,147 +1,23 @@
-editors = {} // global dict holding the TeX editors; maps textype+lang to CodeMirror object
-
-$(function() {
-    // turn the textareas into latex editors
-    $( '.latexeditor' ).each(function(index, elem) {
-        var editor = CodeMirror.fromTextArea($(elem)[0], {lineWrapping:true, lineNumbers:true});
-        var parent = $(elem).parent();
-        editors[parent.attr("textype")+parent.attr("lang")] = editor;
-        
-    });
-    $('.CodeMirror').resizable({
-    	resize: function() {
-    		var parent = $(this).parent();
-    		var editor = editors[parent.attr("textype")+parent.attr("lang")];
-    	    editor.setSize($(this).width(), $(this).height());
-    	},
-    	minWidth: $(this).width(),
-    	maxWidth: $(this).width(),
-    });
-    // hide inactive elements
-    $(".texpreview").not("[src]").hide();
-    $(".errorlog").hide();
-    
-    // autocompletion for the tags (stolen from jQueryUI examples)
-    $("#tags").bind( "keydown", function( event ) {
-            if ( event.keyCode === $.ui.keyCode.TAB &&
-                $( this ).data( "ui-autocomplete" ).menu.active ) {
-                event.preventDefault();
-            }
-        }).autocomplete({
-            minLength: 0,
-            source: function( request, response ) {
-                response( $.ui.autocomplete.filter(
-                    availableTags, extractLast( request.term ) ) );
-            },
-            focus: function() {
-                return false;
-            },
-            select: function( event, ui ) {
-                var terms = split( this.value );
-                terms.pop();
-                terms.push( ui.item.value );
-                terms.push("")
-                this.value = terms.join( ", " );
-                return false;
-            }
-        });
-        
-    // make jQueryUI tabs for exercise/solution edit components
-    $('.textabs').each(function(index, elem) {
-        $(elem).tabs();
-        });
-    
-    // make compile buttons that call compileSnippet()
-    $( '.compilebutton' )
-        .button()
-        .click(function(event) {
-            event.preventDefault();
-            compileSnippet($(this));            
-        });
-    
-    // activate addPreamble button
-    $("#addpreamble")
-        .button()
-        .click(function(event) {
-            event.preventDefault();
-            addPreambleLine();
-        });
-    
-    // activate submit button
-    $("#submitbutton")
-        .button()
-        .click(function(event) {
-            event.preventDefault();
-            // check that a description has been entered
-            if ( $.trim($("#description").val()) == "") {
-                alert("Please enter a description");
-                return;
-            }
-            
-            // now "click" all compilebuttons and wait for the
-            // responses; if it's okay then really call submit function
-            
-            var waiting = 4;
-            var noTex = 0;
-            var errors = false;
-            $("#wait_submit").dialog("open");
-            $(".compilebutton").each(function(index, elem) {
-                var req = compileSnippet($(elem));
-                if (req == 0) {
-                    waiting -= 1;
-                    noTex += 1;
-                    if (noTex == 4)
-                        alert("Please enter some tex code");
-                    return;
-                }
-                req.done( function( resp ) {
-                    if (errors)
-                        return;
-                    if (resp["status"] == "ok") {
-                        waiting -= 1;
-                        if (waiting == 0)
-                            submit();
-                    } else {
-                        errors = true;
-                        alert("please fix compilation errors first");
-                        $("#wait_submit").dialog("close");
-                    }
-                });
-                req.fail( function(req, status, err) {
-                    alert("Server error");
-                });
-            });
-        });
-});
-
-var addPreambleLine = function(text) {
-    var li = $('<li><button class="preminus"></button><input type="text" id="preamble1" class="ui-widget-content ui-corner-all"/></li>');
-    if (text)
-        li.children("input").val(text);
-    $("#preambles").append(li);
-    li.children(".preminus")
-        .button({icons: {primary: "ui-icon-minus"}, text: false})
-        .click( function(event) {
-            event.preventDefault();
-            $(this).parent().remove();
-        });
-};
-
-var compileSnippet = function(button) {
-    var textype = button.parent().attr("textype");
-    var lang = button.parent().attr("lang");
-    var texpreview = button.siblings(".texpreview");
-    var errorlog = button.siblings(".errorlog");
+function compileSnippet(textab) {
+    var textype = textab.attr("textype");
+    var lang = textab.attr("lang");
     var editor = editors[textype+lang];
     if ($.trim(editor.getValue()) == "")
         return 0;
+    var texpreview = textab.find(".texpreview");
+    var errorlog = textab.find(".errorlog");
     var progress = $('<div class="progressbar"></div>');
     var proglabel = $('<div class="progress-label">compiling, please be patient...</div>');
     progress.append(proglabel);
     progress.progressbar({value: false  });
-    button.parent().prepend(progress);
-    data = { tex : editor.getValue(), lang: lang, type:textype, preambles: JSON.stringify(preambles())};
-    if (mode == "edit") {
+    textab.prepend(progress);
+    data = {
+    		tex          : editor.getValue(),
+    		lang         : lang,
+    		type         : textype,
+    		tex_preamble : JSON.stringify(preambles())
+    		};
+    if (mode === "edit") {
         data.creator = creator;
         data.number = number;
     }
@@ -156,8 +32,8 @@ var compileSnippet = function(button) {
                 texpreview.show();
                 errorlog.hide();
             } else {
-                texpreview.hide();
                 errorlog.find("pre").text(resp["log"]);
+                texpreview.hide();
                 errorlog.show();
             }
         },
@@ -171,9 +47,23 @@ var compileSnippet = function(button) {
         progress.remove();
     });
     return req;
-};
+}
 
-var submit = function() {
+function setPreviewUrl(type, lang, src) {
+	var textab = $('.textab[textype="'+type+'"][lang="'+lang+'"]');
+	textab.find(".texpreview").attr("src", src).show();
+	textab.find(".errorlog").hide();
+}
+
+function setErrorLog(type, lang, log) {
+	var textab = $('.textab[textype="'+type+'"][lang="'+lang+'"]');
+	textab.find(".errorlog>pre").text(log);
+	textab.find(".errorlog").show();
+	textab.find(".texpreview").hide();
+}
+
+function submit() {
+	$("#wait_submit").dialog("open");
     var data = {};
     var tex_solution = {};
     var tex_exercise = {};
@@ -183,7 +73,7 @@ var submit = function() {
         var editor = editors[textype+lang];
         if ($.trim(editor.getValue()) == "")
             return;
-        if (textype == "exercise")
+        if (textype === "exercise")
             tex_exercise[lang] = $.trim(editor.getValue());
         else
             tex_solution[lang] = $.trim(editor.getValue());
@@ -199,11 +89,28 @@ var submit = function() {
         data: { data : JSON.stringify(data) },
         dataType : 'json',
         success : function(resp) {
-            window.location.replace(listUrl);
+        	if (resp['status'] === 'ok')
+        		window.location.replace(listUrl);
+        	else {
+        		if (resp['status'] == 'errormsg')
+        			alert(resp['log']);
+        		else {
+        			console.log(resp);
+        			for (var i=0; i < resp['okays'].length; ++i) {
+        				var ok = resp['okays'][i];
+        				setPreviewUrl(ok.type, ok.lang, ok['imgsrc']);
+        			}
+        			setErrorLog(resp['type'], resp['lang'], resp['log']);
+        			alert("Error compiling " + resp['type'] + " " + resp['lang']);
+        		}
+        			
+        	}
         },
         error : function(req, status, err) {
             alert("error submitting");
         },
         async : false
-    }).always(function() {$("#wait_submit").dialog("close");});
+    }).always(function() {
+    	$("#wait_submit").dialog("close");
+    });
 }

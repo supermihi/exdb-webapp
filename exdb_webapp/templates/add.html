@@ -1,58 +1,70 @@
 {% extends "layout.html" %}
 
 {% block head %}
-<script src="{{url_for('static', filename='js/codemirror.js')}}"></script>
 <link rel="stylesheet" href="{{url_for('static', filename='css/codemirror.css')}}"></link>
+
+<script src="{{url_for('static', filename='js/codemirror.js')}}"></script>
 <script src="{{url_for('static', filename='js/codemirror-stex.js')}}"></script>
-<script>
-    {% if exercise %}
-        mode = "edit";
-        creator = "{{exercise.creator}}";
-        number = {{exercise.number}};
-    {% else %}
-        mode = "add";
-    {% endif %}
-    $(function() {
-        makeTagTree()
-        .dynatree("option", "onClick", function(node, event) {
-            if (node.data.is_tag) {
-                var currentTags = tags("#tags");
-                console.log(currentTags);
-                var found = currentTags.indexOf(node.data.title);
-                if (found == -1)
-                    currentTags.push(node.data.title);
-                else
-                    currentTags.splice(found, 1);
-                $("#tags").val(currentTags.join(", "));
-            }
-        });
-    });
-</script>
 <script src="{{url_for('static', filename='js/add.js')}}"></script>
 
-{% if exercise %}
 <script>
-    $(function() {
-        $("#description").val("{{exercise.description}}");
-        $("#tags").val("{{",".join(exercise.tags)}}");
-        {% for line in exercise.tex_preamble %}
-            addPreambleLine("{{line.replace('\\', '\\\\')}}");
-        {% endfor %}
-        {% if "DE" not in exercise.tex_exercise %}
-            $('.textabs[textype="exercise"]').tabs("option", "active", 1);
-        {% endif %}
-        {% if ("DE" not in exercise.tex_solution) and ("EN" in exercise.tex_solution) %}
-            $('.textabs[textype="solution"]').tabs("option", "active", 1);
-        {% endif %}
+	// global dict holding the TeX editors; maps textype+lang to CodeMirror object
+	editors = {} 
+	$(function() {
+	    {% if exercise %}
+	        mode = "edit";
+	        var exJson = $.parseJSON('{{exercise|safe}}');
+	        fillEditFields(exJson);
+	    {% else %}
+	        mode = "add";
+	    {% endif %}
+	    // load available tags
+	    availableTags = $.parseJSON('{{tags|safe}}');
+	    // create tag tree for easier selection
+        makeTagTree()
+        .dynatree("option", "onClick", function(node, event) {
+            if (node.data.is_tag)
+            	updateTagField(node.data.title);
+        });
+        // make CodeMirror editors from the .latexeditor textareas
+        createLatexEditors();
+        // hide inactive elements
+        $(".texpreview").not("[src]").hide();
+        $(".errorlog").hide();
+        // init tags autocomplete
+        installTagAutocompletion();
+     	// make jQueryUI tabs for exercise/solution edit components
+        $('.textabs').each(function(i, elem) {
+            $(elem).tabs();
+        });
+     	// make compile buttons that call compileSnippet()
+        $( '.compilebutton' )
+            .button()
+            .click(function(event) {
+            	event.preventDefault();
+                compileSnippet($(this).parents(".textab"));            
+            });
+        // activate addPreamble button
+        $("#addpreamble")
+            .button()
+            .click(function(event) {
+                event.preventDefault();
+                addPreambleLine();
+            });
+     	// activate submit button
+        $("#submitbutton")
+            .button()
+            .click(function(event) {
+                event.preventDefault();
+                submit();
+            })
     });
 </script>
-{% endif %}
-
 {% endblock %}
 
 
 {% block body %}
-<h1>{% if exercise %}Modify exercise {{exercise.identifier()}}{% else %}New Exercise{% endif %}</h1>
+<h1 id="addeditheading">New Exercise</h1>
 
 <form><fieldset id="exercisefields">
     <label for="description">Description</label>
@@ -75,9 +87,9 @@
             </ul>
             {% for lang in "DE", "EN" %}
                 <div id="textab_{{typ}}_{{lang}}" lang="{{lang}}" textype="{{typ}}" class="textab">
-                    <img class="texpreview" {% if exercise and lang in exercise["tex_{}".format(typ)] %}src="{{url_for('preview', creator=exercise.creator, number=exercise.number, type=typ, lang=lang)}}"{% endif %}/>
+                    <img class="texpreview"/>
                     <div class="errorlog"><label class="errormsg">Error compiling source</label><pre></pre></div>
-                    <textarea class="latexeditor ui-widget-content">{% if exercise %}{{exercise["tex_{}".format(typ)][lang]}}{% endif %}</textarea>
+                    <textarea class="latexeditor ui-widget-content"></textarea>
                     <button class="compilebutton">compile</button>
                 </div>
             {% endfor %}
