@@ -10,27 +10,39 @@
 	// global dict holding the TeX editors; maps textype+lang to CodeMirror object
 	editors = {} 
 	$(function() {
-		// make jQueryUI tabs for exercise/solution edit components
-        $('.textabs').each(function(i, elem) {
-            $(elem).tabs();
-        });
      	// make CodeMirror editors from the .latexeditor textareas
         createLatexEditors();
+     	// make jQueryUI tabs for exercise/solution edit components
+        $('.textabs').each(function(i, elem) {
+            $(elem).tabs({
+            	show: function(event, ui) {
+            		for (var editor in editors) {
+            			editor.refresh();
+            		}
+            	}
+            });
+        });
      	// make compile buttons that call compileSnippet()
         $( '.compilebutton' ).button()
             .click(function(event) {
+            	event.preventDefault();
                 compileSnippet($(this).parents(".textab"));            
             });
         // activate addPreamble button
         $("#addpreamble").button()
             .click(function(event) {
+            	event.preventDefault();
                 addPreambleLine();
             });
      	// activate submit button
-        $("#submitbutton").button().click(submit);
+        $("#submitbutton").button()
+        	.click(function(event) {
+        		event.preventDefault();
+        		submit();
+        	});
 	    {% if exercise %}
 	        mode = "edit";
-	        var exJson = $.parseJSON('{{exercise|safe}}');
+	        exJson = $.parseJSON('{{exercise|safe}}');
 	        fillEditFields(exJson);
 	    {% else %}
 	        mode = "add";

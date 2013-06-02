@@ -103,21 +103,27 @@ a:hover {
 
 
 /* add & edit page */
+.CodeMirror {
+	height: auto;
+	border: 1px solid gray;
+}
+
+.CodeMirror-scroll {
+	overflow-x: auto;
+	overflow-y: hidden;
+}
 .errorlog {
-	max-height:200px;
+	max-height:400px;
     max-width: 630px;
     overflow:auto;
 }
-.textabs {
-    min-height: 230px;
-}
 .texpreview {
     display:block;
-    max-width: 630px;
+    width: auto;
 }
 .errormsg {
-    color:red;
-    font-style:bold;
+    color: red;
+    font-weight: bold;
 }
 #preambles {
     list-style-type: none;

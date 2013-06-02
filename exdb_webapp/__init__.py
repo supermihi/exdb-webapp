@@ -113,6 +113,7 @@ def history():
 @app.route('/rpclatex', methods=["POST"])
 @login_required
 def rpclatex():
+    print('a')
     tex = request.form['tex']
     lang = request.form['lang']
     type = request.form['type']
@@ -121,7 +122,7 @@ def rpclatex():
         number = request.form["number"]
     else:
         creator = number = None
-    preambles = json.loads(request.form['preambles'])
+    preambles = json.loads(request.form['tex_preamble'])
     return jsonify(**compileSnippet(tex, preambles, type, lang, creator, number))
 
 

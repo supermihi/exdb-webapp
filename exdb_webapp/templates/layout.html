@@ -4,11 +4,6 @@
 <head>
     <meta charset="utf-8" />
     <title>Exercise Database</title>
-    {% for css in ("css/jquery-ui/jquery-ui-1.10.2.custom.css"
-                  ,"css/dynatree/ui.dynatree.css"
-                  ,"css/style.css") %}
-        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename=css)}}"/>
-    {% endfor %}
     <script>
         rpclatexUrl='{{url_for("rpclatex")}}';
         listUrl='{{url_for("list")}}';
@@ -24,6 +19,11 @@
     {% endfor %}
     
     {% block head %}{% endblock %}
+    {% for css in ("css/jquery-ui/jquery-ui-1.10.2.custom.css"
+                  ,"css/dynatree/ui.dynatree.css"
+                  ,"css/exdb.css") %}
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename=css)}}"/>
+    {% endfor %}
 </head>
 
 <body>

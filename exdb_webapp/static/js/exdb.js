@@ -385,21 +385,13 @@ function createLatexEditors() {
         		$(elem)[0],
         		{
         			lineWrapping: true,
-        			lineNumbers:  true
+        			lineNumbers:  true,
+        			viewPortMargin: Infinity
         		}
         );
         var parent = $(elem).parent();
         editors[parent.attr("textype")+parent.attr("lang")] = editor;
         
-    });
-    $('.CodeMirror').resizable({
-    	resize: function() {
-    		var parent = $(this).parent();
-    		var editor = editors[parent.attr("textype")+parent.attr("lang")];
-    	    editor.setSize($(this).width(), $(this).height());
-    	},
-    	minWidth: $(this).width(),
-    	maxWidth: $(this).width(),
     });
 }
 
@@ -456,9 +448,8 @@ function fillEditFields(exJson) {
 		var typ = $(elem).attr("textype");
 		var lang = $(elem).attr("lang");
 		if (exJson["tex_"+typ] && exJson["tex_"+typ][lang]) {
-			console.log(editors["solutionDE"]);
 			editors[typ+lang].setValue(exJson["tex_"+typ][lang]);
-			$(elem).find('.texpreview').attr("src", exJson["preview_"+typ+lang]);
+			$(elem).find('.texpreview').attr("src", timestampedURL(exJson["preview_"+typ+lang]));
 		}
 	});
 }
@@ -467,6 +458,13 @@ function fillEditFields(exJson) {
 /* -------------------------------------------------------------
  * E. ---------------- RPC LaTeX RELATED CODE ------------------
  * -----------------------------------------------------------*/
+
+
+/** Return a modified URL containing a timestamp to avoid caching.
+ */
+function timestampedURL(url) {
+	return url + "?timestamp=" + new Date().getTime();
+}
 
 
 /** Compile the LaTeX code snippet in the given ".textab" element.
@@ -493,8 +491,8 @@ function compileSnippet(textab) {
     		tex_preamble : JSON.stringify(preambles())
     		};
     if (mode === "edit") {
-        data.creator = creator;
-        data.number = number;
+        data.creator = exJson.creator;
+        data.number = exJson.number;
     }
     req = $.ajax({
         type : 'POST',
@@ -503,15 +501,18 @@ function compileSnippet(textab) {
         dataType : 'json',
         success : function (resp) {
             if (resp['status'] === 'ok')
-            	setPreviewUrl(type, lang, resp['imgsrc']);
+            	setPreviewUrl(textype, lang, timestampedURL(resp['imgsrc']));
             else
-            	setErrorLog(type, lang, resp["log"]);
+            	setErrorLog(textype, lang, resp["log"]);
         },
         error : function (req, status, err) {
-        	setErrorLog(type, lang, "Server communication error");
+        	console.log("error");
+        	setErrorLog(textype, lang, "Server communication error");
         }
     });
-    req.always(progress.remove);
+    req.always(function() {
+    	progress.remove();
+    });
     return req;
 }
 
@@ -570,7 +571,6 @@ function submit() {
         		if (resp['status'] == 'errormsg')
         			alert(resp['log']);
         		else {
-        			console.log(resp);
         			for (var i=0; i < resp['okays'].length; ++i) {
         				var ok = resp['okays'][i];
         				setPreviewUrl(ok.type, ok.lang, ok['imgsrc']);
