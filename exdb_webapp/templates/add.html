@@ -5,12 +5,29 @@
 
 <script src="{{url_for('static', filename='js/codemirror.js')}}"></script>
 <script src="{{url_for('static', filename='js/codemirror-stex.js')}}"></script>
-<script src="{{url_for('static', filename='js/add.js')}}"></script>
 
 <script>
 	// global dict holding the TeX editors; maps textype+lang to CodeMirror object
 	editors = {} 
 	$(function() {
+		// make jQueryUI tabs for exercise/solution edit components
+        $('.textabs').each(function(i, elem) {
+            $(elem).tabs();
+        });
+     	// make CodeMirror editors from the .latexeditor textareas
+        createLatexEditors();
+     	// make compile buttons that call compileSnippet()
+        $( '.compilebutton' ).button()
+            .click(function(event) {
+                compileSnippet($(this).parents(".textab"));            
+            });
+        // activate addPreamble button
+        $("#addpreamble").button()
+            .click(function(event) {
+                addPreambleLine();
+            });
+     	// activate submit button
+        $("#submitbutton").button().click(submit);
 	    {% if exercise %}
 	        mode = "edit";
 	        var exJson = $.parseJSON('{{exercise|safe}}');
@@ -18,50 +35,21 @@
 	    {% else %}
 	        mode = "add";
 	    {% endif %}
-	    // load available tags
+	 	// init tags autocomplete
 	    availableTags = $.parseJSON('{{tags|safe}}');
+        installTagAutocompletion();
 	    // create tag tree for easier selection
-        makeTagTree()
-        .dynatree("option", "onClick", function(node, event) {
+        makeTagTree().dynatree("option", "onClick", function(node, event) {
             if (node.data.is_tag)
             	updateTagField(node.data.title);
         });
-        // make CodeMirror editors from the .latexeditor textareas
-        createLatexEditors();
         // hide inactive elements
         $(".texpreview").not("[src]").hide();
         $(".errorlog").hide();
-        // init tags autocomplete
-        installTagAutocompletion();
-     	// make jQueryUI tabs for exercise/solution edit components
-        $('.textabs').each(function(i, elem) {
-            $(elem).tabs();
-        });
-     	// make compile buttons that call compileSnippet()
-        $( '.compilebutton' )
-            .button()
-            .click(function(event) {
-            	event.preventDefault();
-                compileSnippet($(this).parents(".textab"));            
-            });
-        // activate addPreamble button
-        $("#addpreamble")
-            .button()
-            .click(function(event) {
-                event.preventDefault();
-                addPreambleLine();
-            });
-     	// activate submit button
-        $("#submitbutton")
-            .button()
-            .click(function(event) {
-                event.preventDefault();
-                submit();
-            })
+        
     });
 </script>
 {% endblock %}
-
 
 {% block body %}
 <h1 id="addeditheading">New Exercise</h1>
