@@ -589,26 +589,3 @@ function submit() {
     	$("#wait_submit").dialog("close");
     });
 }
-
-
-/* Create and hide the dialogs which are used in several views */ 
-$(function() {
-	$("#wait_submit").dialog({
-        autoOpen:false,
-        modal:true
-    });
-	$("#confirm_dialog").dialog({
-        autoOpen:false,
-        modal:true,
-        buttons: {
-            Ok: function() {
-            	$(this).dialog("close");
-            	$(this).trigger("dialogOk");
-            },
-            Cancel: function() {
-            	$(this).dialog("close");
-            	$(this).trigger("dialogCancel");
-            }
-        }            
-	});
-});
