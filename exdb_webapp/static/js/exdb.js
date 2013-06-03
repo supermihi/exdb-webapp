@@ -360,9 +360,9 @@ function split(val) {
  */
 function updateTagField(tag) {
 	var currentTags = tags("#tags");
-	var found = currentTags.indexOf(node.data.title);
+	var found = currentTags.indexOf(tag);
 	if (found == -1)
-		currentTags.push(node.data.title);
+		currentTags.push(tag);
 	else
 		currentTags.splice(found, 1);
 	$("#tags").val(currentTags.join(", "));

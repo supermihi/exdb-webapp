@@ -14,11 +14,10 @@
         createLatexEditors();
      	// make jQueryUI tabs for exercise/solution edit components
         $('.textabs').each(function(i, elem) {
+        	var textab = $(elem).find(".textab");
             $(elem).tabs({
             	show: function(event, ui) {
-            		for (var editor in editors) {
-            			editor.refresh();
-            		}
+            		editors[textab.attr("textype")+textab.attr("lang")].refresh();
             	}
             });
         });
