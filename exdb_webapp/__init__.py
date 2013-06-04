@@ -137,7 +137,10 @@ def checkSubmittedExercise(data, old=None):
     okays = []
     for type in "exercise", "solution":
         for lang, tex in data["tex_" + type].items():
-            ans = compileSnippet(tex, preambles, type, lang)
+            if old:
+                ans = compileSnippet(tex, preambles, type, lang, old.creator, old.number)
+            else:
+                ans = compileSnippet(tex, preambles, type, lang)
             if ans["status"] == "ok":
                 okays.append(dict(type=type, lang=lang, imgsrc=ans["imgsrc"]))
             else:
