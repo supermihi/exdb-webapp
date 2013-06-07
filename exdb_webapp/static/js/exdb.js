@@ -565,8 +565,11 @@ function submit() {
         data: { data : JSON.stringify(data) },
         dataType : 'json',
         success : function(resp) {
-        	if (resp['status'] === 'ok')
-        		window.location.replace(listUrl);
+        	if (resp['status'] === 'ok') {
+        		setTimeout(function() {
+        			window.location.replace(listUrl);
+        		}, 200);
+        	}
         	else {
         		if (resp['status'] == 'errormsg')
         			alert(resp['log']);
@@ -584,7 +587,6 @@ function submit() {
         error : function(req, status, err) {
             alert("internal server error while submitting exercise");
         },
-        async : false
     }).always(function() {
     	$("#wait_submit").dialog("close");
     });
