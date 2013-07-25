@@ -117,7 +117,6 @@ def collectFiles(oldfiles, creator=None, number=None):
         files.extend(exdb.repo.loadFiles(creator, number, oldfiles))
     newfiles = request.files.getlist("datafiles")
     files.extend((secure_filename(file.filename), file.read()) for file in newfiles if file)
-    print(files)
     return files
 
 
