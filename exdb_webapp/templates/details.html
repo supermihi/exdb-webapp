@@ -15,9 +15,15 @@
     <li>Last modified: {{exercise.modified}}</li>
     <li>Tags: {{", ".join(exercise.tags)}}</li>
 </ul>
-{% if exercise.tex_preamble.__len__() > 0 %}
+{% if exercise.tex_preamble|length > 0 %}
     <h2>Extra preamble</h2>
     <textarea class="latexeditor small">{{"\n".join(exercise.tex_preamble)|safe}}</textarea>
+{% endif %}
+{% if exercise.data_files|length > 0 %}
+    <h2>Data files</h2>
+    {% for fname in exercise.data_files %}
+      <a href="{{url_for('datafile', creator=exercise.creator, number=exercise.number, filename=fname)}}">{{fname}}</a>
+    {% endfor %}
 {% endif %}
 {% for typ, dct in ("exercise", exercise.tex_exercise), ("solution", exercise.tex_solution) %}
     <h2>{{typ}}</h2>

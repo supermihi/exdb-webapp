@@ -400,9 +400,9 @@ function createLatexEditors() {
  *  that contain only whitespaces are ignored.
  */
 function preambles() {
-    vals = [];
+    var vals = [];
     $("#preambles input").each(function(index, elem) {
-        val = $(elem).val();
+        var val = $(elem).val();
         if ($.trim(val) != "")
             vals.push($.trim(val));
     });
@@ -421,11 +421,35 @@ function addPreambleLine(text) {
         li.children("input").val(text);
     $("#preambles").append(li);
     li.children(".preminus")
-        .button({icons: {primary: "ui-icon-minus"}, text: false})
+        .button({icons: {primary: "ui-icon-close"}, text: false})
         .click( function(event) {
             event.preventDefault();
             $(this).parent().remove();
         });
+}
+
+
+/** List the file names of existing data files. May change if user removes some.
+ */
+function existing_data_files() {
+	var vals = [];
+	$(".filename").each(function(index, elem) {
+		vals.push($(elem).text());
+	});
+	return vals;
+}
+
+
+/** Add a new line to the list of (existing) data files.
+ */
+function addDataFile(filename) {
+	var thing = $('<span class="filename ui-corner-all"></span>').text(filename);
+	var button = $('<button></button>').button({ icons: { primary: "ui-icon-close"}}).click( function(event) {
+		event.preventDefault();
+		$(this).parent().remove();
+	});
+	thing.append(button);
+	$("#data_files").append(thing);
 }
 
 
@@ -439,6 +463,9 @@ function fillEditFields(exJson) {
 	$("#tags").val(exJson.tags.join(", "));
 	$.each(exJson.tex_preamble, function(i, line) {
 		addPreambleLine(line);
+	});
+	$.each(exJson.data_files, function(i, fname) {
+		addDataFile(fname);
 	});
 	if (!exJson.tex_exercise.DE)
 		$('.textabs[textype="exercise"]').tabs("option", "active", 1);
@@ -484,21 +511,25 @@ function compileSnippet(textab) {
     progress.append(proglabel);
     progress.progressbar({value: false });
     textab.prepend(progress);
-    data = {
+    var formData = new FormData($("#mainform")[0]); // includes upload images
+    var data = {
     		tex          : editor.getValue(),
     		lang         : lang,
     		type         : textype,
-    		tex_preamble : JSON.stringify(preambles())
+    		tex_preamble : preambles(),
+    		data_files   : existing_data_files()
     		};
     if (mode === "edit") {
         data.creator = exJson.creator;
         data.number = exJson.number;
     }
+    formData.append("data", JSON.stringify(data));
     req = $.ajax({
         type : 'POST',
         url  : rpclatexUrl,
-        data : data,
-        dataType : 'json',
+        data : formData,
+        processData : false,
+        contentType : false,
         success : function (resp) {
             if (resp['status'] === 'ok')
             	setPreviewUrl(textype, lang, timestampedURL(resp['imgsrc']));
@@ -540,7 +571,7 @@ function setErrorLog(type, lang, log) {
  */ 
 function submit() {
 	$("#wait_submit").dialog("open");
-    var data = {};
+	var formData = new FormData($("#mainform")[0]);
     var tex_solution = {};
     var tex_exercise = {};
     $(".textab").each(function(index, elem) {
@@ -554,16 +585,21 @@ function submit() {
         else
             tex_solution[lang] = $.trim(editor.getValue());
     });
-    data["tex_exercise"] = tex_exercise;
-    data["tex_solution"] = tex_solution;
-    data["tex_preamble"] = preambles();
-    data["description"] = $("#description").val();
-    data["tags"] = tags("#tags");
+    var data = {
+     	tex_preamble : preambles(),
+     	data_files   : existing_data_files(),
+      	description  : $("#description").val(),
+       	tags         : tags("#tags"),
+       	tex_exercise : tex_exercise,
+       	tex_solution : tex_solution
+    };
+    formData.append("data", JSON.stringify(data));
     $.ajax({
         type : 'POST',
         url : window.location.pathname,
-        data: { data : JSON.stringify(data) },
-        dataType : 'json',
+        data: formData,
+        processData : false,
+        contentType: false,
         success : function(resp) {
         	if (resp['status'] === 'ok') {
         		setTimeout(function() {

@@ -65,17 +65,19 @@
 {% block body %}
 <h1 id="addeditheading">New Exercise</h1>
 
-<form><fieldset id="exercisefields">
+<form enctype="multipart/form-data" id="mainform"><fieldset id="exercisefields">
     <label for="description">Description</label>
     <input type="text" id="description" class="text ui-widget-content ui-corner-all"></input>
     <label for="tags">Tags <span class="comment">(please use english tag names for consistency)</span></label>
     <input id="tags" class="text ui-widget-content ui-corner-all" />
     <div id="tagtree"></div>
     <label for="preamble">Preamble <span class="comment">(special \usepackage, \newcommand, etc. for this exercise)</span></label>
-    <ul id="preambles">
-    </ul>
+    <ul id="preambles"></ul>
     <button id="addpreamble">add line</button>
-
+    <div id="data_files" class="text ui-corner-all" style="padding:4px 0px">
+    	<label>Data files <span class="comment">(for images, etc.)</span></label><br/>
+    </div>
+  	<input type="file" class="text ui-widget-content ui-corner-all" id="file_input" name="datafiles" multiple="multiple" />
     {% for typ in ("exercise", "solution") %}
         <h2>{{typ|capitalize}} tex code</h2>
         <div class="textabs" textype="{{typ}}">

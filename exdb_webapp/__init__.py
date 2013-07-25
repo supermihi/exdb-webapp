@@ -47,7 +47,7 @@ def teardown_request(exception):
 
 @app.route("/")
 @login_required
-def list():
+def exerciselist():
     """The "list exercises" view (main page of the application)."""
     exercises = exdb.sql.exercises(connection=g.db)
     return render_template('list.html', exercises=exercises)
@@ -110,23 +110,49 @@ def history():
     return render_template("history.html", entries=data)
 
 
+def collectFiles(oldfiles, creator=None, number=None):
+    files = []
+    if len(oldfiles):
+        assert creator is not None and number is not None
+        files.extend(exdb.repo.loadFiles(creator, number, oldfiles))
+    newfiles = request.files.getlist("datafiles")
+    files.extend((secure_filename(file.filename), file.read()) for file in newfiles if file)
+    print(files)
+    return files
+
+
 @app.route('/rpclatex', methods=["POST"])
 @login_required
 def rpclatex():
-    print('a')
-    tex = request.form['tex']
-    lang = request.form['lang']
-    type = request.form['type']
-    if 'creator' in request.form:
-        creator = request.form["creator"]
-        number = request.form["number"]
+    data = json.loads(request.form["data"])
+    tex = data['tex']
+    lang = data['lang']
+    type = data['type']
+    if 'creator' in data:
+        creator = data["creator"]
+        number = data["number"]
     else:
         creator = number = None
-    preambles = json.loads(request.form['tex_preamble'])
-    return jsonify(**compileSnippet(tex, preambles, type, lang, creator, number))
+    preambles = data['tex_preamble']
+    files = collectFiles(data['data_files'], creator, number)
+    return jsonify(**compileSnippet(tex, preambles, files, type, lang, creator, number))
 
 
 def checkSubmittedExercise(data, old=None):
+    """Performs validity checks on the exercise given by *data* and adds/updates it.
+    
+    If *old* is given an exercise update is assumed (where *old* is the old Exercise instance),
+    otherwise a new exercise is created.
+    *data* is a dictionary of the Exercise attributes.
+    
+    Returns a dictionary d, where d["status"] indicates the status and is one of:
+      - "ok": in this case adding/update was successful
+      - "errormsg": if validation fails; in this case d["log"] contains an error string
+      - "error": TeX compilation error; in this case d["type"] contains the tex type ("solution" or
+                 "exercise", d["lang"] the language, d["log"] the console output, and d["okays"]
+                 is a list of TeX snippets that successfully compiled, identified by a dictionary
+                 {"type":textype, "lang":language, "imgsrc":imageURL}.
+    """
     description = data["description"]
     if len(description.strip()) == 0:
         return dict(status="errormsg", log="Please enter a description!")
@@ -134,13 +160,16 @@ def checkSubmittedExercise(data, old=None):
         return dict(status="errormsg", log="Please enter exercise code in at least one language!")
     preambles = data["tex_preamble"]
     data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
+    if old:
+        creator = old.creator
+        number = old.number
+    else:
+        creator = number = None
+    files = collectFiles(data['data_files'], creator, number)
     okays = []
     for type in "exercise", "solution":
         for lang, tex in data["tex_" + type].items():
-            if old:
-                ans = compileSnippet(tex, preambles, type, lang, old.creator, old.number)
-            else:
-                ans = compileSnippet(tex, preambles, type, lang)
+            ans = compileSnippet(tex, preambles, files, type, lang, creator, number)
             if ans["status"] == "ok":
                 okays.append(dict(type=type, lang=lang, imgsrc=ans["imgsrc"]))
             else:
@@ -151,14 +180,15 @@ def checkSubmittedExercise(data, old=None):
         exercise = exdb.exercise.Exercise(creator=session['user'])
     for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
         setattr(exercise, key, data[key])
+    exercise["data_files"] = [ f[0] for f in files ]
     if old:
-        exdb.updateExercise(exercise, old=old, connection=g.db, user=session['user'])
+        exdb.updateExercise(exercise, files=files, old=old, connection=g.db, user=session['user'])
     else:
-        exdb.addExercise(exercise, connection=g.db)
+        exdb.addExercise(exercise, files=files, connection=g.db)
     return dict(status="ok")
 
 
-def compileSnippet(tex, preambles, type, lang, creator=None, number=None):
+def compileSnippet(tex, preambles, files, type, lang, creator=None, number=None):
     if creator:
         exercise = exdb.sql.exercise(creator=creator, number=number)
         dct = exercise["tex_" + type]
@@ -170,14 +200,15 @@ def compileSnippet(tex, preambles, type, lang, creator=None, number=None):
                                        type=type, lang=lang)
                         )
     try:
-        imgFile = exdb.tex.makePreview(tex, preambles=preambles, lang=lang)
+        imgFile = exdb.tex.makePreview(tex, preambles=preambles, files=files, lang=lang)
         hashPath = os.path.split(os.path.dirname(imgFile))[1]
         return {"status": "ok", "imgsrc": url_for("tempPreview", path=hashPath)}
     except exdb.tex.CompilationError as e:
         return {"status": "error", "log": e.log.decode('utf-8', 'ignore')}
     except exdb.tex.ConversionError as e:
         return {"status": "error", "log": str(e)}
-    
+
+
 @app.route('/partial/search', methods=['POST'])
 @login_required
 def search():
@@ -196,9 +227,13 @@ def search():
 @app.route('/preview/<creator>/<int:number>/<type>/<lang>')
 @login_required
 def preview(creator, number, type, lang):
-    return send_file(join(exdb.repo.repoPath(), "exercises", "{}{}".format(creator, number),
-                   "{}_{}.png".format(type, lang)))
+    return send_file(join(exdb.repo.exercisePath(creator=creator, number=number),
+                          "{}_{}.png".format(type, lang)))
 
+@app.route('/datafile/<creator>/<int:number>/<filename>')
+@login_required
+def datafile(creator, number, filename):
+    return send_file(join(exdb.repo.exercisePath(creator=creator, number=number), filename))
 
 @app.route('/temppreview/<path>')
 @login_required

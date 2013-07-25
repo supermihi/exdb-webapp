@@ -6,7 +6,7 @@
     <title>Exercise Database</title>
     <script>
         rpclatexUrl='{{url_for("rpclatex")}}';
-        listUrl='{{url_for("list")}}';
+        listUrl='{{url_for("exerciselist")}}';
         searchUrl='{{url_for("search")}}';
         removeUrl='{{url_for("remove")}}';
         tagTreeUrl='{{url_for("tagtree")}}';
@@ -36,7 +36,8 @@
         {% if session.get("user") %}
         <div id="navbar" class="mainbox">
             <span class="currentuser">logged in as {{ session.get("user") }}</span>
-            {% for link in ["list", "add", "tags", "history", "settings", "logout"] %}
+            <a class="navlink" href="{{url_for('exerciselist')}}">list</a>
+            {% for link in ["add", "tags", "history", "settings", "logout"] %}
               <a class="navlink" href="{{url_for(link)}}">{{link}}</a>
             {% endfor %}
         </div>

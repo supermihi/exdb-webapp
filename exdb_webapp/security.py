@@ -92,7 +92,7 @@ def login():
             error = "Invalid password"
         else:
             session['user'] = user
-            return redirect(url_for("list"))
+            return redirect(url_for("exerciselist"))
     return render_template('login.html', error=error)
 
 
