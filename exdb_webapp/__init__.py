@@ -6,7 +6,7 @@
 # published by the Free Software Foundation
 
 import subprocess, os, shutil
-from os.path import dirname, join, exists, relpath
+from os.path import basename, dirname, join, exists, relpath
 import uuid
 import json
 import copy
@@ -110,31 +110,28 @@ def history():
     return render_template("history.html", entries=data)
 
 
-def collectFiles(oldfiles, creator=None, number=None):
-    files = []
-    if len(oldfiles):
-        assert creator is not None and number is not None
-        files.extend(exdb.repo.loadFiles(creator, number, oldfiles))
-    newfiles = request.files.getlist("datafiles")
-    files.extend((secure_filename(file.filename), file.read()) for file in newfiles if file)
-    return files
-
-
 @app.route('/rpclatex', methods=["POST"])
 @login_required
 def rpclatex():
     data = json.loads(request.form["data"])
     tex = data['tex']
     lang = data['lang']
-    type = data['type']
+    textype = data['type']
+    preambles = data['tex_preamble']
+    files = {secure_filename(file.filename): file.read()
+                for file in request.files.getlist("datafiles") if file}
     if 'creator' in data:
         creator = data["creator"]
         number = data["number"]
+        files.update(exdb.repo.loadFiles(creator, number, data['data_files']))
     else:
         creator = number = None
-    preambles = data['tex_preamble']
-    files = collectFiles(data['data_files'], creator, number)
-    return jsonify(**compileSnippet(tex, preambles, files, type, lang, creator, number))
+    try:
+        imgFile = exdb.tex.makePreview(tex, preambles=preambles, files=files, lang=lang)
+        hashPath = os.path.split(os.path.dirname(imgFile))[1]
+        return jsonify(status="ok", imgsrc=url_for("tempPreview", path=hashPath))
+    except exdb.tex.CompilationError as e:
+        return jsonify(status="error", log=e.log.decode('utf-8', 'ignore'))
 
 
 def checkSubmittedExercise(data, old=None):
@@ -152,60 +149,41 @@ def checkSubmittedExercise(data, old=None):
                  is a list of TeX snippets that successfully compiled, identified by a dictionary
                  {"type":textype, "lang":language, "imgsrc":imageURL}.
     """
-    description = data["description"]
-    if len(description.strip()) == 0:
-        return dict(status="errormsg", log="Please enter a description!")
-    if len(data["tex_exercise"]) == 0:
-        return dict(status="errormsg", log="Please enter exercise code in at least one language!")
-    preambles = data["tex_preamble"]
     data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
-    if old:
-        creator = old.creator
-        number = old.number
-    else:
-        creator = number = None
-    files = collectFiles(data['data_files'], creator, number)
-    okays = []
-    for type in "exercise", "solution":
-        for lang, tex in data["tex_" + type].items():
-            ans = compileSnippet(tex, preambles, files, type, lang, creator, number)
-            if ans["status"] == "ok":
-                okays.append(dict(type=type, lang=lang, imgsrc=ans["imgsrc"]))
-            else:
-                return dict(status="error", type=type, lang=lang, log=ans["log"], okays=okays)
+    newfiles = request.files.getlist("datafiles")
+    files = {}
+    newDataFiles = []
+    for file in request.files.getlist("datafiles"):
+        if file:
+            sname = secure_filename(file.filename)
+            files[sname] = file.read()
+            newDataFiles.append(sname)
     if old:
         exercise = copy.copy(old)
     else:
         exercise = exdb.exercise.Exercise(creator=session['user'])
     for key in "description", "tags", "tex_preamble", "tex_exercise", "tex_solution":
         setattr(exercise, key, data[key])
-    exercise["data_files"] = [ f[0] for f in files ]
-    if old:
-        exdb.updateExercise(exercise, files=files, old=old, connection=g.db, user=session['user'])
-    else:
-        exdb.addExercise(exercise, files=files, connection=g.db)
-    return dict(status="ok")
-
-
-def compileSnippet(tex, preambles, files, type, lang, creator=None, number=None):
-    if creator:
-        exercise = exdb.sql.exercise(creator=creator, number=number)
-        dct = exercise["tex_" + type]
-        if lang in dct and tex == exercise["tex_" + type]:
-            # no changes -> return preview URL
-            return dict(status="ok",
-                        imgsrc=url_for("preview",
-                                       creator=creator, number=number,
-                                       type=type, lang=lang)
-                        )
+    exercise["data_files"] = data["data_files"] + newDataFiles
     try:
-        imgFile = exdb.tex.makePreview(tex, preambles=preambles, files=files, lang=lang)
-        hashPath = os.path.split(os.path.dirname(imgFile))[1]
-        return {"status": "ok", "imgsrc": url_for("tempPreview", path=hashPath)}
+        if old:
+            exdb.updateExercise(exercise, files, old, g.db, user=session['user'])
+        else:
+            exdb.addExercise(exercise, files, g.db)
+    except ValueError as e:
+        return dict(status="errormsg", log=str(e))
     except exdb.tex.CompilationError as e:
-        return {"status": "error", "log": e.log.decode('utf-8', 'ignore')}
-    except exdb.tex.ConversionError as e:
-        return {"status": "error", "log": str(e)}
+        okays = []
+        for (textype, lang), (previewtype, path) in e.successful.items():
+            if previewtype == "preview":
+                imgsrc = url_for("preview", creator=exercise.creator, number=exercise.number,
+                                 type=textype, lang=lang)
+            else:
+                imgsrc = url_for("tempPreview", path=basename(dirname(path)))
+            okays.append(dict(type=textype, lang=lang, imgsrc=imgsrc))
+        return dict(status="error", type=e.textype, lang=e.lang,
+                    log=e.log.decode('utf-8', 'ignore'), okays=okays)
+    return dict(status="ok")
 
 
 @app.route('/partial/search', methods=['POST'])
