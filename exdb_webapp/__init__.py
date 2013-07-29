@@ -150,7 +150,6 @@ def checkSubmittedExercise(data, old=None):
                  {"type":textype, "lang":language, "imgsrc":imageURL}.
     """
     data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
-    newfiles = request.files.getlist("datafiles")
     files = {}
     newDataFiles = []
     for file in request.files.getlist("datafiles"):
