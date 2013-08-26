@@ -116,7 +116,6 @@ def rpclatex():
     data = json.loads(request.form["data"])
     tex = data['tex']
     lang = data['lang']
-    textype = data['type']
     preambles = data['tex_preamble']
     files = {secure_filename(file.filename): file.read()
                 for file in request.files.getlist("datafiles") if file}
@@ -171,6 +170,8 @@ def checkSubmittedExercise(data, old=None):
             exdb.addExercise(exercise, files, g.db)
     except ValueError as e:
         return dict(status="errormsg", log=str(e))
+    except exdb.repo.PushError as e:
+        return dict(status="semiok", log=str(e))
     except exdb.tex.CompilationError as e:
         okays = []
         for (textype, lang), (previewtype, path) in e.successful.items():

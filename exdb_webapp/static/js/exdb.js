@@ -601,24 +601,28 @@ function submit() {
         processData : false,
         contentType: false,
         success : function(resp) {
-        	if (resp['status'] === 'ok') {
-        		setTimeout(function() {
-        			window.location.replace(listUrl);
-        		}, 200);
-        	}
-        	else {
-        		if (resp['status'] == 'errormsg')
-        			alert(resp['log']);
-        		else {
-        			for (var i=0; i < resp['okays'].length; ++i) {
-        				var ok = resp['okays'][i];
-        				setPreviewUrl(ok.type, ok.lang, ok['imgsrc']);
-        			}
-        			setErrorLog(resp['type'], resp['lang'], resp['log']);
-        			alert("Error compiling " + resp['type'] + " " + resp['lang']);
-        		}
-        			
-        	}
+            switch (resp['status']) {
+            case 'ok':
+                setTimeout(function() {
+                    window.location.replace(listUrl);
+                }, 200);
+                break;
+            case 'semiok':
+                alert(resp['log']);
+                window.location.replace(listUrl);
+                break;
+            case 'errormsg':
+                alert(resp['log']);
+                break;
+            case 'error':
+                for ( var i = 0; i < resp['okays'].length; ++i) {
+                    var ok = resp['okays'][i];
+                    setPreviewUrl(ok.type, ok.lang, ok['imgsrc']);
+                }
+                setErrorLog(resp['type'], resp['lang'], resp['log']);
+                alert("Error compiling " + resp['type'] + " " + resp['lang']);
+                break;
+            }
         },
         error : function(req, status, err) {
             alert("internal server error while submitting exercise");
