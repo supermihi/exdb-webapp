@@ -148,7 +148,7 @@ def checkSubmittedExercise(data, old=None):
                  is a list of TeX snippets that successfully compiled, identified by a dictionary
                  {"type":textype, "lang":language, "imgsrc":imageURL}.
     """
-    data["tags"] = [ tag for tag in data["tags"] if len(tag.strip()) > 0]
+    data["tags"] = [ tag.strip() for tag in data["tags"] if len(tag.strip()) > 0]
     files = {}
     newDataFiles = []
     for file in request.files.getlist("datafiles"):

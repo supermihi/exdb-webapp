@@ -39,8 +39,13 @@ $(function() {
         autoOpen: false, modal:true, resizable: false,
         buttons: {
             Ok: function() {
+            	var val = $("#newcat_name_input").val().trim();
+            	if (val === "") {
+            	    alert("Category name must not be empty");
+            	    return false;
+            	}
                 $("#tagtree").dynatree("getRoot").addChild({
-                    title: $("#newcat_name_input").val(),
+                    title: $("#newcat_name_input").val().trim(),
                     isFolder: true,
                     is_tag: false
                 });
@@ -56,7 +61,11 @@ $(function() {
         autoOpen: false, modal: true, resizable: false,
         buttons: {
             Ok: function() {
-            	var val = $("#newname_input").val();
+            	var val = $("#newname_input").val().trim();
+            	if (val === "") {
+            		alert("Tag name must not be empty");
+            		return false;
+            	}
             	var ok = true;
             	$("#tagtree").dynatree("getRoot").visit(function(node) {
             		if (node.data.is_tag && node.data.title === val) {
