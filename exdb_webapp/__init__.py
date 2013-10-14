@@ -73,8 +73,9 @@ def edit(creator, number):
         for lang in exercise["tex_" + typ]:
             exercise["preview_" + typ + lang] = \
                 url_for("preview", creator=creator, number=number, type=typ, lang=lang)
-    js = exercise.toJSON().replace('\\', '\\\\').replace("'", "\\'")
-    return render_template('add.html', exercise=js, tags=json.dumps(exdb.sql.tags(g.db)))
+    exjs = exercise.toJSON().replace('\\', '\\\\').replace("'", "\\'") #TODO: make it better!
+    tagjs = json.dumps(exdb.sql.tags(g.db)).replace('\\', '\\\\').replace("'", "\\'")
+    return render_template('add.html', exercise=exjs, tags=tagjs)
 
 
 @app.route('/remove', methods=["POST"])
