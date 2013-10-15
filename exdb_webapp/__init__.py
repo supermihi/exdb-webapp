@@ -28,6 +28,9 @@ def imagePath(filename):
 
 app.jinja_env.globals.update(imagePath=imagePath)
 
+def escapeJSON(string):
+    """Escapes the given JSON string for use in a javascript file."""
+    return string.replace('\\', '\\\\').replace("'", "\\'")
 
 @app.before_request
 def before_request():
@@ -59,7 +62,7 @@ def add():
     if request.method == "POST":
         data = json.loads(request.form["data"])
         return jsonify(**checkSubmittedExercise(data))
-    return render_template('add.html', tags=json.dumps(exdb.sql.tags(g.db)))
+    return render_template('add.html', tags=escapeJSON(json.dumps(exdb.sql.tags(g.db))))
 
 
 @app.route('/edit/<creator>/<int:number>', methods=["POST", "GET"])
@@ -73,8 +76,8 @@ def edit(creator, number):
         for lang in exercise["tex_" + typ]:
             exercise["preview_" + typ + lang] = \
                 url_for("preview", creator=creator, number=number, type=typ, lang=lang)
-    exjs = exercise.toJSON().replace('\\', '\\\\').replace("'", "\\'") #TODO: make it better!
-    tagjs = json.dumps(exdb.sql.tags(g.db)).replace('\\', '\\\\').replace("'", "\\'")
+    exjs = escapeJSON(exercise.toJSON())
+    tagjs = escapeJSON(json.dumps(exdb.sql.tags(g.db)))
     return render_template('add.html', exercise=exjs, tags=tagjs)
 
 
